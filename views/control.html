@@ -1,12 +1,219 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <link rel="stylesheet" href="/css/client.css">
     <title>Transcription Controller</title>
+    <style>
+        /* Header Controls Container */
+        .header-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        /* Dark Mode Toggle Switch */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .toggle-switch.dark {
+            background-color: #4a90e2;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .toggle-switch.dark .toggle-slider {
+            transform: translateX(30px);
+        }
+        
+        .theme-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: inherit;
+        }
+        
+        /* Logout Button */
+        .logout-btn {
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logout-btn:hover {
+            background-color: #c82333;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .logout-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode h1,
+        body.dark-mode h2,
+        body.dark-mode label {
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .button-box,
+        body.dark-mode .text-box-large {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode button:not(.logout-btn):not(.toggle-switch) {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        
+        body.dark-mode input:focus,
+        body.dark-mode select:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        /* Fix for dropdowns in dark mode */
+        body.dark-mode select option {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .drop-down-selector {
+            background-color: #3a3a3a !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #555 !important;
+        }
+        
+        body.dark-mode #audioInputSelect {
+            background-color: #3a3a3a !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #555 !important;
+        }
+        
+        body.dark-mode #langInputSelect {
+            background-color: #3a3a3a !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #555 !important;
+        }
+        
+        /* Fix for Start Streaming button in dark mode */
+        body.dark-mode .start-action {
+            background-color: #28a745 !important;
+            color: white !important;
+            border: none;
+        }
+        
+        body.dark-mode .start-action:hover {
+            background-color: #218838 !important;
+        }
+        
+        body.dark-mode #enableStreaming {
+            background-color: #28a745 !important;
+            color: white !important;
+        }
+        
+        body.dark-mode #enableStreaming:hover {
+            background-color: #218838 !important;
+        }
+        
+        body.dark-mode .stop-action {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        body.dark-mode .stop-action:hover {
+            background-color: #c82333;
+        }
+        
+        body.dark-mode .recording-status {
+            background-color: #2d2d2d;
+            border-color: #404040;
+        }
+        
+        body.dark-mode #transcript li,
+        body.dark-mode #dynamic-monitor-list li {
+            color: #e0e0e0;
+            border-bottom-color: #404040;
+        }
+        
+        /* Smooth transition for theme switch */
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        .button-box,
+        .text-box-large,
+        input,
+        select,
+        button {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+    </style>
 </head>
 
-<body style="margin: 20px;">
+<body style="margin: 30px;">
+    <p>Open Word v3</p>
+    
+    <!-- Header Controls (Dark Mode Toggle + Logout) -->
+    <div class="header-controls">
+        <!-- Dark Mode Toggle -->
+        <div class="theme-toggle">
+            <span class="theme-label" id="themeLabel">☀️ Light</span>
+            <div class="toggle-switch" id="themeToggle">
+                <div class="toggle-slider">☀️</div>
+            </div>
+        </div>
+        
+        <!-- Logout Button -->
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+    </div>
+
     <div>
         <div class="recording-status" id="recording-status">
             <span id="recording-light" class="status-light recording"></span>
@@ -66,10 +273,65 @@
         <h2>Transcript</h2>
         <ul id="transcript"></ul>
     </div>
-    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/common.js"></script>
     <script src="/js/control.js"></script>
+    
+    <!-- Dark Mode & Logout functionality -->
+    <script>
+        // Dark Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeLabel = document.getElementById('themeLabel');
+        const body = document.body;
+        const toggleSlider = document.querySelector('.toggle-slider');
+        
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // Apply saved theme on load
+        if (currentTheme === 'dark') {
+            body.classList.add('dark-mode');
+            themeToggle.classList.add('dark');
+            themeLabel.textContent = '🌙 Dark';
+            toggleSlider.textContent = '🌙';
+        }
+        
+        // Toggle theme on click
+        themeToggle.addEventListener('click', function() {
+            body.classList.toggle('dark-mode');
+            themeToggle.classList.toggle('dark');
+            
+            if (body.classList.contains('dark-mode')) {
+                themeLabel.textContent = '🌙 Dark';
+                toggleSlider.textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeLabel.textContent = '☀️ Light';
+                toggleSlider.textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Try to sign out from Firebase if available
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    firebase.auth().signOut()
+                        .then(() => {
+                            console.log('User signed out successfully');
+                            window.location.href = '/login';
+                        })
+                        .catch((error) => {
+                            console.error('Logout error:', error);
+                            window.location.href = '/login';
+                        });
+                } else {
+                    window.location.href = '/login';
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>
