@@ -85,6 +85,62 @@
             transform: scale(0.98);
         }
         
+        /* Save Transcript Button */
+        .save-transcript-btn {
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+            width: auto;
+        }
+        
+        .save-transcript-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        body.dark-mode .save-transcript-btn {
+            background-color: #007bff !important;
+            color: white !important;
+        }
+        
+        body.dark-mode .save-transcript-btn:hover {
+            background-color: #0056b3 !important;
+        }
+        
+        /* Clear Transcript Button */
+        .clear-transcript-btn {
+            padding: 8px 15px;
+            background-color: #ffc107;
+            color: #212529;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+            width: auto;
+        }
+        
+        .clear-transcript-btn:hover {
+            background-color: #e0a800;
+        }
+        
+        body.dark-mode .clear-transcript-btn {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+        }
+        
+        body.dark-mode .clear-transcript-btn:hover {
+            background-color: #e0a800 !important;
+        }
+        
         /* Dark Mode Styles */
         body.dark-mode {
             background-color: #1a1a1a;
@@ -163,12 +219,21 @@
         }
         
         body.dark-mode .stop-action {
-            background-color: #dc3545;
-            color: white;
+            background-color: #dc3545 !important;
+            color: white !important;
         }
         
         body.dark-mode .stop-action:hover {
-            background-color: #c82333;
+            background-color: #c82333 !important;
+        }
+        
+        body.dark-mode #disableStreaming {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        
+        body.dark-mode #disableStreaming:hover {
+            background-color: #c82333 !important;
         }
         
         body.dark-mode .recording-status {
@@ -176,10 +241,72 @@
             border-color: #404040;
         }
         
+        body.dark-mode .recording-status #recording-text {
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode .status-light {
+            border-color: #404040 !important;
+        }
+        
+        /* Keep recording light red in both modes */
+        body.dark-mode #recording-light {
+            background-color: #dc3545 !important;
+        }
+        
         body.dark-mode #transcript li,
         body.dark-mode #dynamic-monitor-list li {
-            color: #e0e0e0;
+            color: #e0e0e0 !important;
             border-bottom-color: #404040;
+        }
+        
+        /* Fix transcript text visibility */
+        body.dark-mode #transcript {
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode #transcript li {
+            color: #e0e0e0 !important;
+            background-color: #2d2d2d !important;
+            border-bottom-color: #404040 !important;
+        }
+        
+        /* Override alternating row colors in dark mode */
+        body.dark-mode #transcript > li:nth-child(odd) {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode #transcript > li:nth-child(even) {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode #transcript-text-box {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode #transcript-text-box h2 {
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode .text-box-large {
+            background-color: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode .text-box-large h2 {
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode .text-box-large ul {
+            color: #e0e0e0 !important;
+        }
+        
+        body.dark-mode .text-box-large ul li {
+            color: #e0e0e0 !important;
+            background-color: #2d2d2d !important;
         }
         
         /* Smooth transition for theme switch */
@@ -221,21 +348,25 @@
         </div>
     </div>
     <div class="button-container">
-        <div class="button-box fixed-box-small">
-            <h2>Service ID</h2>
+        <div class="button-box fixed-box-small" style="flex: 0 0 130px;">
+            <h2 style="margin-top: 0;">Service ID</h2>
             <p id="serviceId"></p>
+            <div style="margin-top: 15px;">
+                <label for="key">Church Key</label>
+                <input type="password" id="key" name="key" maxlength="10" size="10" style="width: 100%; margin-top: 5px;" />
+            </div>
         </div>
         <div class="button-box fixed-box-medium" id="qrcode-box">
             <h2>QR Code</h2>
         </div>
-        <div class="button-box fixed-box-large">
-            <h2>Main Control</h2>
+        <div class="button-box fixed-box-large" style="padding-top: 10px;">
+            <h2 style="margin-top: 0; margin-bottom: 10px;">Main Control</h2>
             <form id="audioForm">
-                <label for="key">Church Key</label>
-                <input type="password" id="key" name="key" maxlength="10" size="10" />
                 <button type="submit" class="start-action" id="enableStreaming">Start Streaming</button>
             </form>
             <button class="stop-action" id="disableStreaming" style="display: none;">Stop Streaming</button>
+            <button class="save-transcript-btn" id="saveTranscript" style="margin-top: 5px;">💾 Save Transcript</button>
+            <button class="clear-transcript-btn" id="clearTranscript" style="display: none; margin-top: 5px;">🗑️ Clear Transcript</button>
         </div>
         <div class="button-box">
             <h2>Language</h2>
@@ -315,6 +446,9 @@
         // Logout functionality
         document.getElementById('logoutBtn').addEventListener('click', function() {
             if (confirm('Are you sure you want to logout?')) {
+                // Clear the Church Key before logout
+                document.getElementById('key').value = '';
+                
                 // Try to sign out from Firebase if available
                 if (typeof firebase !== 'undefined' && firebase.auth) {
                     firebase.auth().signOut()
@@ -331,6 +465,95 @@
                 }
             }
         });
+        
+        // Clear Church Key when page is about to unload (browser close, refresh, navigate away)
+        window.addEventListener('beforeunload', function() {
+            document.getElementById('key').value = '';
+        });
+        
+        // Clear Church Key when page loses visibility (tab switch, minimize)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // Optional: only clear if you want to clear on tab switch
+                // Uncomment the line below if you want this behavior
+                // document.getElementById('key').value = '';
+            }
+        });
+        
+        // Save Transcript Functionality
+        function saveTranscript() {
+            const transcriptList = document.getElementById('transcript');
+            const transcriptItems = transcriptList.querySelectorAll('li');
+            
+            if (transcriptItems.length === 0) {
+                alert('No transcript to save!');
+                return;
+            }
+            
+            // Collect transcript text
+            let transcriptText = 'Transcript\n';
+            transcriptText += '='.repeat(50) + '\n';
+            transcriptText += 'Date: ' + new Date().toLocaleString() + '\n';
+            transcriptText += '='.repeat(50) + '\n\n';
+            
+            transcriptItems.forEach((item, index) => {
+                transcriptText += `${index + 1}. ${item.textContent}\n`;
+            });
+            
+            // Create download
+            const blob = new Blob([transcriptText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transcript_${new Date().toISOString().slice(0,10)}_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert('Transcript saved successfully!');
+        }
+        
+        // Attach save functionality to button
+        document.getElementById('saveTranscript').addEventListener('click', saveTranscript);
+        
+        // Clear Transcript Functionality
+        function clearTranscript() {
+            if (confirm('Are you sure you want to clear the transcript? This cannot be undone.')) {
+                const transcriptList = document.getElementById('transcript');
+                transcriptList.innerHTML = '';
+                alert('Transcript cleared!');
+            }
+        }
+        
+        // Attach clear functionality to button
+        document.getElementById('clearTranscript').addEventListener('click', clearTranscript);
+        
+        // Show/hide Clear button based on streaming status (Save is always visible)
+        const stopBtn = document.getElementById('disableStreaming');
+        const startBtn = document.getElementById('enableStreaming');
+        const clearBtn = document.getElementById('clearTranscript');
+        
+        // Observer to show/hide Clear button when stop/start button visibility changes
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'style') {
+                    const stopBtnVisible = stopBtn.style.display !== 'none';
+                    const startBtnVisible = startBtn.style.display !== 'none';
+                    
+                    if (stopBtnVisible) {
+                        // Streaming is active - hide clear button
+                        clearBtn.style.display = 'none';
+                    } else if (startBtnVisible) {
+                        // Streaming is stopped - show clear button
+                        clearBtn.style.display = 'block';
+                    }
+                }
+            });
+        });
+        
+        observer.observe(stopBtn, { attributes: true });
+        observer.observe(startBtn, { attributes: true });
     </script>
 </body>
 
