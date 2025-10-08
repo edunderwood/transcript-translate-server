@@ -115,7 +115,7 @@ const languages = [
         value: "🇪🇪 Estonian"
     },
     {
-        key: "tl",
+        key: "fil",
         value: "🇵🇭 Filipino"
     },
     {
