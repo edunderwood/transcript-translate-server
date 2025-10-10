@@ -1,5 +1,6 @@
 /**
  * DeBabel Translation Server with Supabase Authentication
+ * ES Module Version
  * 
  * Main server file that integrates:
  * - Supabase authentication
@@ -9,24 +10,24 @@
  * - Real-time translation streaming
  */
 
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const http = require('http');
-const WebSocket = require('ws');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
 
 // Import Supabase authentication
-const { authenticateUser, authorizeService } = require('./middleware/auth');
-const { getChurchByUserId, getChurchByKey, updateChurch } = require('./db/churches');
-const { 
+import { authenticateUser, authorizeService } from './middleware/auth.js';
+import { getChurchByUserId, getChurchByKey, updateChurch } from './db/churches.js';
+import { 
   getServiceByServiceId, 
   updateServiceStatus, 
   isServiceActive,
   getServicesByUser 
-} = require('./db/services');
+} from './db/services.js';
 
 const app = express();
-const server = http.createServer(app);
+const server = createServer(app);
 
 // Middleware
 app.use(cors());
@@ -90,7 +91,7 @@ async function cleanupTranslationService(serviceId) {
   const connections = serviceConnections.get(serviceId);
   if (connections) {
     connections.forEach(ws => {
-      if (ws.readyState === WebSocket.OPEN) {
+      if (ws.readyState === 1) { // WebSocket.OPEN
         ws.close();
       }
     });
@@ -418,7 +419,7 @@ app.get('/api/service/:serviceId',
 // WEBSOCKET SETUP
 // =====================================================
 
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws, req) => {
   console.log('🔌 New WebSocket connection');
@@ -468,7 +469,7 @@ wss.on('connection', (ws, req) => {
   });
 
   // Send initial connection confirmation
-  if (ws.readyState === WebSocket.OPEN) {
+  if (ws.readyState === 1) { // WebSocket.OPEN
     ws.send(JSON.stringify({
       type: 'connection',
       message: 'Connected to translation service',
@@ -483,7 +484,7 @@ wss.on('connection', (ws, req) => {
  * @param {string} serviceId - Service ID
  * @param {Object} message - Message to broadcast
  */
-function broadcastToService(serviceId, message) {
+export function broadcastToService(serviceId, message) {
   const connections = serviceConnections.get(serviceId);
   if (!connections || connections.length === 0) {
     return;
@@ -493,7 +494,7 @@ function broadcastToService(serviceId, message) {
   let sentCount = 0;
 
   connections.forEach(ws => {
-    if (ws.readyState === WebSocket.OPEN) {
+    if (ws.readyState === 1) { // WebSocket.OPEN
       ws.send(messageStr);
       sentCount++;
     }
@@ -582,4 +583,4 @@ server.listen(PORT, () => {
 });
 
 // Export for testing
-module.exports = { app, server, broadcastToService };
+export { app, server };
