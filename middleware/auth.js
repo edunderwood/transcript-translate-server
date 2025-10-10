@@ -1,5 +1,6 @@
 /**
  * Authentication and Authorization Middleware for DeBabel Server
+ * ES Module Version
  * 
  * Provides middleware functions for:
  * - Verifying Supabase JWT tokens
@@ -7,7 +8,7 @@
  * - Rate limiting (optional)
  */
 
-const { supabase, supabaseAdmin } = require('../supabase');
+import { supabase, supabaseAdmin } from '../supabase.js';
 
 /**
  * Middleware to verify Supabase JWT token
@@ -19,7 +20,7 @@ const { supabase, supabaseAdmin } = require('../supabase');
  *     console.log(req.userId); // User ID
  *   });
  */
-async function authenticateUser(req, res, next) {
+export async function authenticateUser(req, res, next) {
   try {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
@@ -77,7 +78,7 @@ async function authenticateUser(req, res, next) {
  *     }
  *   );
  */
-async function authorizeService(req, res, next) {
+export async function authorizeService(req, res, next) {
   try {
     const { serviceId } = req.params;
     const userId = req.userId;
@@ -146,7 +147,7 @@ async function authorizeService(req, res, next) {
  *     }
  *   );
  */
-async function authorizeChurch(req, res, next) {
+export async function authorizeChurch(req, res, next) {
   try {
     const { churchId } = req.params;
     const userId = req.userId;
@@ -192,7 +193,7 @@ async function authorizeChurch(req, res, next) {
  * Optional middleware to check if user has a specific role
  * Useful for admin-only endpoints
  */
-async function requireRole(allowedRoles) {
+export function requireRole(allowedRoles) {
   return async (req, res, next) => {
     try {
       const userId = req.userId;
@@ -239,10 +240,3 @@ async function requireRole(allowedRoles) {
     }
   };
 }
-
-module.exports = {
-  authenticateUser,
-  authorizeService,
-  authorizeChurch,
-  requireRole
-};
