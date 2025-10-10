@@ -1,12 +1,13 @@
 /**
  * Supabase Client Configuration for DeBabel Server
+ * ES Module Version
  * 
  * This file creates two Supabase clients:
  * 1. supabase - For JWT verification and client operations
  * 2. supabaseAdmin - For server-side operations with full access (bypasses RLS)
  */
 
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
 // Validate environment variables
 if (!process.env.SUPABASE_URL) {
@@ -32,7 +33,7 @@ if (!process.env.SUPABASE_ANON_KEY) {
  * WARNING: Never expose service role key to client!
  * This key has full database access and bypasses Row Level Security.
  */
-const supabaseAdmin = createClient(
+export const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   {
@@ -51,7 +52,7 @@ const supabaseAdmin = createClient(
  * - Public operations
  * - RLS-enabled queries (respects user permissions)
  */
-const supabase = createClient(
+export const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY,
   {
@@ -64,8 +65,3 @@ const supabase = createClient(
 
 console.log('✅ Supabase clients initialized successfully');
 console.log(`📍 Supabase URL: ${process.env.SUPABASE_URL}`);
-
-module.exports = { 
-  supabase, 
-  supabaseAdmin 
-};
