@@ -1,1 +1,276 @@
-1
+/**
+ * Church Database Functions
+ * 
+ * Handles all database operations related to churches
+ */
+
+const { supabaseAdmin } = require('../supabase');
+
+/**
+ * Get church info for a specific user
+ * @param {string} userId - User's UUID
+ * @returns {Object|null} Church data or null
+ */
+async function getChurchByUserId(userId) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('churches')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        console.log(`ℹ️  No church found for user ${userId}`);
+        return null;
+      }
+      console.error('Error fetching church by user ID:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getChurchByUserId:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get church info by church_key (public - no auth needed)
+ * Used by client app to fetch branding/config
+ * @param {string} churchKey - Unique church identifier
+ * @returns {Object|null} Church data or null
+ */
+async function getChurchByKey(churchKey) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('churches')
+      .select('*')
+      .eq('church_key', churchKey)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        console.log(`ℹ️  No church found with key ${churchKey}`);
+        return null;
+      }
+      console.error('Error fetching church by key:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getChurchByKey:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get church by ID
+ * @param {string} churchId - Church UUID
+ * @returns {Object|null} Church data or null
+ */
+async function getChurchById(churchId) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('churches')
+      .select('*')
+      .eq('id', churchId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        console.log(`ℹ️  No church found with ID ${churchId}`);
+        return null;
+      }
+      console.error('Error fetching church by ID:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getChurchById:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create new church for user
+ * @param {string} userId - User's UUID
+ * @param {Object} churchData - Church information
+ * @returns {Object} Created church data
+ */
+async function createChurch(userId, churchData) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('churches')
+      .insert([{
+        user_id: userId,
+        name: churchData.name || 'My Church',
+        church_key: churchData.church_key || generateChurchKey(),
+        greeting: churchData.greeting || 'Welcome!',
+        message: churchData.message || [],
+        additional_welcome: churchData.additional_welcome || '',
+        waiting_message: churchData.waiting_message || 'Service is currently offline',
+        logo_base64: churchData.logo_base64 || '',
+        host_language: churchData.host_language || 'en-US',
+        translation_languages: churchData.translation_languages || [],
+        default_service_id: churchData.default_service_id || '1234'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating church:', error);
+      throw error;
+    }
+
+    console.log(`✅ Created church for user ${userId}: ${data.name}`);
+    return data;
+  } catch (error) {
+    console.error('Error in createChurch:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update church info
+ * @param {string} userId - User's UUID (for verification)
+ * @param {string} churchId - Church UUID
+ * @param {Object} updates - Fields to update
+ * @returns {Object} Updated church data
+ */
+async function updateChurch(userId, churchId, updates) {
+  try {
+    // Remove fields that shouldn't be updated directly
+    const allowedUpdates = { ...updates };
+    delete allowedUpdates.id;
+    delete allowedUpdates.user_id;
+    delete allowedUpdates.created_at;
+
+    const { data, error } = await supabaseAdmin
+      .from('churches')
+      .update(allowedUpdates)
+      .eq('id', churchId)
+      .eq('user_id', userId) // Ensure user owns this church
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating church:', error);
+      throw error;
+    }
+
+    console.log(`✅ Updated church ${churchId} for user ${userId}`);
+    return data;
+  } catch (error) {
+    console.error('Error in updateChurch:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete church
+ * @param {string} userId - User's UUID (for verification)
+ * @param {string} churchId - Church UUID
+ * @returns {boolean} Success status
+ */
+async function deleteChurch(userId, churchId) {
+  try {
+    const { error } = await supabaseAdmin
+      .from('churches')
+      .delete()
+      .eq('id', churchId)
+      .eq('user_id', userId); // Ensure user owns this church
+
+    if (error) {
+      console.error('Error deleting church:', error);
+      throw error;
+    }
+
+    console.log(`✅ Deleted church ${churchId} for user ${userId}`);
+    return true;
+  } catch (error) {
+    console.error('Error in deleteChurch:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate unique church key
+ * Format: CH_randomstring
+ * @returns {string} Unique church key
+ */
+function generateChurchKey() {
+  const random = Math.random().toString(36).substring(2, 15);
+  const timestamp = Date.now().toString(36);
+  return `CH_${random}${timestamp}`;
+}
+
+/**
+ * Check if church key is available
+ * @param {string} churchKey - Church key to check
+ * @returns {boolean} True if available
+ */
+async function isChurchKeyAvailable(churchKey) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('churches')
+      .select('id')
+      .eq('church_key', churchKey)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows found - key is available
+        return true;
+      }
+      throw error;
+    }
+
+    // Key exists
+    return false;
+  } catch (error) {
+    console.error('Error checking church key availability:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get all churches (admin only)
+ * @param {number} limit - Max number of results
+ * @param {number} offset - Offset for pagination
+ * @returns {Array} Array of churches
+ */
+async function getAllChurches(limit = 50, offset = 0) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('churches')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Error fetching all churches:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getAllChurches:', error);
+    throw error;
+  }
+}
+
+module.exports = {
+  getChurchByUserId,
+  getChurchByKey,
+  getChurchById,
+  createChurch,
+  updateChurch,
+  deleteChurch,
+  generateChurchKey,
+  isChurchKeyAvailable,
+  getAllChurches
+};
