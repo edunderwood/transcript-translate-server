@@ -263,7 +263,7 @@ async function getAllChurches(limit = 50, offset = 0) {
   }
 }
 
-module.exports = {
+export {
   getChurchByUserId,
   getChurchByKey,
   getChurchById,
