@@ -17,14 +17,14 @@ import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 
 // Import Supabase authentication
-import { authenticateUser, authorizeService } from './middleware/auth.js';
-import { getChurchByUserId, getChurchByKey, updateChurch } from './db/churches.js';
+import { authenticateUser, authorizeService } from '../middleware/auth.js';
+import { getChurchByUserId, getChurchByKey, updateChurch } from '../db/churches.js';
 import { 
   getServiceByServiceId, 
   updateServiceStatus, 
   isServiceActive,
   getServicesByUser 
-} from './db/services.js';
+} from '../db/services.js';
 
 const app = express();
 const server = createServer(app);
