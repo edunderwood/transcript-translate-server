@@ -4,7 +4,7 @@
  * Handles all database operations related to churches
  */
 
-const { supabaseAdmin } = require('../supabase');
+import { supabaseAdmin } from '../supabase.js';
 
 /**
  * Get church info for a specific user
