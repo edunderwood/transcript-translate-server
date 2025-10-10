@@ -4,7 +4,7 @@
  * Handles all database operations related to translation services
  */
 
-const { supabaseAdmin } = require('../supabase');
+import { supabaseAdmin } from '../supabase.js';
 
 /**
  * Get service by service_id (string identifier)
@@ -390,7 +390,7 @@ async function getServiceStats(serviceId) {
   }
 }
 
-module.exports = {
+export {
   getServiceByServiceId,
   getServiceById,
   getServicesByChurch,
