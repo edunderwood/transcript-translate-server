@@ -636,8 +636,13 @@ app.get('/api/service/:serviceId',
 );
 
 // =====================================================
-// SOCKET.IO SETUP (for control panel compatibility)
+// SOCKET.IO SETUP (Enhanced for Control Panel & Subscribers)
+// Place this code around line 634 in /src/server.js
+// This replaces the existing Socket.IO setup
 // =====================================================
+
+// Track subscribers per service and language
+const subscriberTracker = new Map();
 
 // Control namespace for control panel
 const controlNamespace = io.of('/control');
@@ -649,12 +654,47 @@ controlNamespace.on('connection', (socket) => {
     console.log(`📊 Monitoring service: ${serviceId}`);
     socket.join(`service-${serviceId}`);
     
+    // Send initial subscriber list if any exist
+    const serviceSubscribers = subscriberTracker.get(serviceId);
+    if (serviceSubscribers) {
+      const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
+        name,
+        subscribers
+      }));
+      socket.emit('subscribers', { languages });
+    } else {
+      // Send empty list
+      socket.emit('subscribers', { languages: [] });
+    }
+    
     // Send confirmation
     socket.emit('registered', { serviceId });
   });
   
+  socket.on('heartbeat', (data) => {
+    console.log(`💓 Heartbeat from service ${data.serviceCode}:`, data.status);
+    // Update service status if needed - can be used for monitoring
+    // You could update the database or in-memory status here
+  });
+  
+  socket.on('transcriptReady', (data) => {
+    console.log(`📝 Transcript ready for service ${data.serviceCode}:`, data.transcript);
+    
+    // Broadcast to all participants in this service
+    participantNamespace.to(`service-${data.serviceCode}`).emit('newTranscript', {
+      transcript: data.transcript,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Also send confirmation back to control panel
+    socket.emit('transcriptSent', {
+      success: true,
+      serviceCode: data.serviceCode
+    });
+  });
+  
   socket.on('disconnect', () => {
-    console.log('🔌 Control panel disconnected');
+    console.log('🔌 Control panel disconnected:', socket.id);
   });
 });
 
@@ -664,15 +704,92 @@ const participantNamespace = io.of('/participant');
 participantNamespace.on('connection', (socket) => {
   console.log('🔌 Participant connected via Socket.IO:', socket.id);
   
-  socket.on('join', (serviceId) => {
-    console.log(`👤 Participant joined service: ${serviceId}`);
+  let currentServiceId = null;
+  let currentLanguage = null;
+  
+  socket.on('join', (data) => {
+    // Support both formats: {serviceId, language} or just serviceId
+    const serviceId = typeof data === 'string' ? data : data.serviceId;
+    const language = typeof data === 'object' ? (data.language || 'unknown') : 'unknown';
+    
+    currentServiceId = serviceId;
+    currentLanguage = language;
+    
+    console.log(`👤 Participant joined service: ${serviceId}, language: ${language}`);
     socket.join(`service-${serviceId}`);
+    
+    // Track subscriber
+    if (!subscriberTracker.has(serviceId)) {
+      subscriberTracker.set(serviceId, new Map());
+    }
+    const serviceSubscribers = subscriberTracker.get(serviceId);
+    
+    // Increment count for this language
+    const currentCount = serviceSubscribers.get(language) || 0;
+    serviceSubscribers.set(language, currentCount + 1);
+    
+    // Notify control panel of subscriber update
+    const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
+      name,
+      subscribers
+    }));
+    controlNamespace.to(`service-${serviceId}`).emit('subscribers', { languages });
+    
+    console.log(`📊 Updated subscribers for ${serviceId}:`, languages);
   });
   
   socket.on('disconnect', () => {
-    console.log('🔌 Participant disconnected');
+    console.log('🔌 Participant disconnected:', socket.id);
+    
+    // Decrement subscriber count
+    if (currentServiceId && currentLanguage) {
+      const serviceSubscribers = subscriberTracker.get(currentServiceId);
+      if (serviceSubscribers && serviceSubscribers.has(currentLanguage)) {
+        const count = serviceSubscribers.get(currentLanguage);
+        
+        if (count <= 1) {
+          // Remove language entirely if this was the last subscriber
+          serviceSubscribers.delete(currentLanguage);
+        } else {
+          // Decrement count
+          serviceSubscribers.set(currentLanguage, count - 1);
+        }
+        
+        // Notify control panel of subscriber update
+        const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
+          name,
+          subscribers
+        }));
+        controlNamespace.to(`service-${currentServiceId}`).emit('subscribers', { languages });
+        
+        console.log(`📊 Updated subscribers for ${currentServiceId}:`, languages);
+        
+        // Clean up empty service tracker
+        if (serviceSubscribers.size === 0) {
+          subscriberTracker.delete(currentServiceId);
+          console.log(`🧹 Cleaned up tracker for service ${currentServiceId}`);
+        }
+      }
+    }
   });
 });
+
+/**
+ * Broadcast message to all Socket.IO clients in a service
+ * @param {string} serviceId - Service ID
+ * @param {string} event - Event name
+ * @param {Object} data - Data to broadcast
+ */
+export function broadcastToSocketIO(serviceId, event, data) {
+  controlNamespace.to(`service-${serviceId}`).emit(event, data);
+  participantNamespace.to(`service-${serviceId}`).emit(event, data);
+  console.log(`📡 Socket.IO broadcast ${event} to service ${serviceId}`);
+}
+
+// =====================================================
+// END OF SOCKET.IO SETUP
+// =====================================================
+
 
 /**
  * Broadcast message to all Socket.IO clients in a service
