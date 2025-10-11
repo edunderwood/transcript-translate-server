@@ -8,6 +8,7 @@
  * - Google Cloud Translation
  * - WebSocket connections
  * - Real-time translation streaming
+ * - Control Center with login
  */
 
 import 'dotenv/config';
@@ -15,6 +16,8 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 // Import Supabase authentication
 import { authenticateUser, authorizeService } from './middleware/auth.js';
@@ -25,19 +28,32 @@ import {
   isServiceActive,
   getServicesByUser 
 } from './db/services.js';
+import { supabase } from './supabase.js';
 
 const app = express();
 const server = createServer(app);
 
+// ES Module path setup
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // For form submissions
 
 // Logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
+
+// =====================================================
+// STATIC FILE SERVING
+// =====================================================
+
+// Serve static files from public directory
+app.use(express.static(join(__dirname, 'public')));
 
 // =====================================================
 // IN-MEMORY STORAGE (will be replaced with database)
@@ -101,6 +117,127 @@ async function cleanupTranslationService(serviceId) {
   activeServices.delete(serviceId);
   console.log(`✅ Service ${serviceId} cleaned up`);
 }
+
+// =====================================================
+// CONTROL CENTER ROUTES
+// =====================================================
+
+/**
+ * Root endpoint - redirect to login
+ * PUBLIC
+ */
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
+/**
+ * Login page
+ * PUBLIC
+ */
+app.get('/login', (req, res) => {
+  res.sendFile(join(__dirname, 'views', 'login.html'));
+});
+
+/**
+ * Control panel page
+ * PUBLIC (authentication happens client-side)
+ */
+app.get('/control', (req, res) => {
+  res.sendFile(join(__dirname, 'views', 'control.html'));
+});
+
+/**
+ * Legacy route for backward compatibility
+ */
+app.get('/local', (req, res) => {
+  res.redirect('/control');
+});
+
+/**
+ * Login authentication endpoint
+ * Authenticates user with Supabase
+ * PUBLIC
+ */
+app.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required'
+      });
+    }
+
+    console.log(`🔐 Login attempt for: ${email}`);
+
+    // Authenticate with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      console.error('❌ Login failed:', error.message);
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+        message: error.message
+      });
+    }
+
+    console.log(`✅ User logged in: ${data.user.email}`);
+
+    // Return success with session data
+    res.json({
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email
+      },
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token
+      },
+      redirectUrl: '/control'
+    });
+
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Login failed',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Logout endpoint
+ * PUBLIC
+ */
+app.post('/auth/logout', async (req, res) => {
+  try {
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      // Sign out this session
+      await supabase.auth.signOut(token);
+    }
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Logout failed'
+    });
+  }
+});
 
 // =====================================================
 // PUBLIC ROUTES (No authentication required)
@@ -579,6 +716,16 @@ server.listen(PORT, () => {
   console.log(`🔐 Supabase: ${process.env.SUPABASE_URL ? '✅ Configured' : '❌ Not configured'}`);
   console.log(`🎤 Deepgram: ${process.env.DEEPGRAM_API_KEY ? '✅ Configured' : '❌ Not configured'}`);
   console.log(`🌐 Translation: ${process.env.GOOGLE_APPLICATION_CREDENTIALS ? '✅ Configured' : '❌ Not configured'}`);
+  console.log('===========================================');
+  console.log('📋 Available Routes:');
+  console.log('   GET  /                     → Login page');
+  console.log('   GET  /login                → Login page');
+  console.log('   GET  /control              → Control center');
+  console.log('   POST /auth/login           → Authentication');
+  console.log('   GET  /health               → Health check');
+  console.log('   GET  /church/info          → Church config');
+  console.log('   GET  /api/church/profile   → User profile (auth)');
+  console.log('   GET  /api/services         → User services (auth)');
   console.log('===========================================');
 });
 
