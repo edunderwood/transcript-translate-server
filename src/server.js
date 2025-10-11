@@ -334,6 +334,75 @@ app.get('/getChurchInfo', async (req, res) => {
   res.redirect(`/church/info?key=${churchKey}`);
 });
 
+/**
+ * Get church configuration for control panel
+ * PUBLIC - Used by legacy control.html
+ * 
+ * This endpoint provides configuration data needed by the old control.html page:
+ * - Host language (source language for transcription)
+ * - Default service ID
+ * - Service timeout duration
+ * - Available translation languages
+ */
+app.get('/church/configuration', async (req, res) => {
+  try {
+    // Get church key from query parameter or environment variable
+    const churchKey = req.query.key || process.env.CHURCH_KEY || 'default';
+    
+    console.log(`📍 Fetching configuration for church key: ${churchKey}`);
+    const church = await getChurchByKey(churchKey);
+
+    if (!church) {
+      // Church not found in database - use environment variable fallback
+      console.warn(`⚠️  No church found for key "${churchKey}", using environment variables`);
+      
+      return res.json({
+        success: true,
+        responseObject: {
+          hostLanguage: process.env.HOST_LANGUAGE || 'en-GB',
+          defaultServiceId: process.env.DEFAULT_SERVICE_ID || generateRandomServiceId(),
+          serviceTimeout: process.env.SERVICE_TIMEOUT || '90',
+          translationLanguages: process.env.TRANSLATION_LANGUAGES 
+            ? JSON.parse(process.env.TRANSLATION_LANGUAGES) 
+            : ['Spanish', 'French', 'German'],
+          churchKey: churchKey
+        }
+      });
+    }
+
+    // Return church configuration from database
+    console.log(`✅ Church configuration found: ${church.name}`);
+    res.json({
+      success: true,
+      responseObject: {
+        hostLanguage: church.host_language || 'en-GB',
+        defaultServiceId: church.default_service_id || '1234',
+        serviceTimeout: process.env.SERVICE_TIMEOUT || '90',
+        translationLanguages: church.translation_languages || [],
+        churchKey: church.church_key,
+        name: church.name,
+        greeting: church.greeting,
+        logo: church.logo_base64
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error fetching church configuration:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch configuration',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Helper function to generate a random 4-digit service ID
+ * Used as fallback when no default service ID is configured
+ */
+function generateRandomServiceId() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
 // =====================================================
 // PROTECTED ROUTES (Authentication required)
 // =====================================================
