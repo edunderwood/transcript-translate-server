@@ -5,34 +5,137 @@
     <link rel="stylesheet" href="/css/login.css">
     <title>Admin Login</title>
     <meta charset="UTF-8">
+    <style>
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 
 <body style="margin: 20px;">
     <div class="container">
         <img src="/img/logo.png" alt="Logo" class="logo">
         <h1>Open Word</h1>
-        <form action="/auth/login" class="validated-form" method="POST" novalidate>
+        
+        <div id="error-message" class="error-message"></div>
+        
+        <form id="login-form" class="validated-form" novalidate>
             <input type="hidden" name="id" id="login-service-id">
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="text" id="email" name="email" placeholder="Enter your email">
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password">
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
-            <button type="submit" class="btn">Login</button>
+            <button type="submit" class="btn" id="login-btn">Login</button>
         </form>
-        <!--
-        <div class="footer">
-            Don't have an account? <a href="#">Sign up</a>
-        </div>
-    -->
     </div>
+    
     <script>
+        // Get service ID from URL if present
         const urlParams = new URLSearchParams(window.location.search);
         const idParam = urlParams.get('id');
-        document.getElementById('login-service-id').value = idParam;
+        if (idParam) {
+            document.getElementById('login-service-id').value = idParam;
+        }
+
+        // Handle form submission
+        const form = document.getElementById('login-form');
+        const errorDiv = document.getElementById('error-message');
+        const loginBtn = document.getElementById('login-btn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Clear previous errors
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+            
+            // Get form data
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Basic validation
+            if (!email || !password) {
+                showError('Please enter both email and password');
+                return;
+            }
+            
+            // Disable button and show loading state
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+            form.classList.add('loading');
+            
+            try {
+                // Send login request
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store session data
+                    if (data.session && data.session.access_token) {
+                        localStorage.setItem('access_token', data.session.access_token);
+                        localStorage.setItem('refresh_token', data.session.refresh_token);
+                    }
+                    if (data.user) {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                    }
+                    
+                    // Show success message briefly
+                    loginBtn.textContent = 'Success! Redirecting...';
+                    loginBtn.style.backgroundColor = '#28a745';
+                    
+                    // Redirect to control panel
+                    setTimeout(() => {
+                        window.location.href = data.redirectUrl || '/control';
+                    }, 500);
+                    
+                } else {
+                    // Show error message
+                    showError(data.message || 'Invalid email or password');
+                    resetButton();
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Network error. Please check your connection and try again.');
+                resetButton();
+            }
+        });
+        
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function resetButton() {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
+            form.classList.remove('loading');
+        }
     </script>
 </body>
 
