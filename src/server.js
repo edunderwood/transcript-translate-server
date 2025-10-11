@@ -30,6 +30,8 @@ import {
   getServicesByUser 
 } from '../db/services.js';
 import { supabase } from '../supabase.js';
+// Import QR code routes
+import qrcodeRouter from './routes/qrcode.js';
 
 const app = express();
 const server = createServer(app);
@@ -63,6 +65,9 @@ app.use((req, res, next) => {
 
 // Serve static files from public directory (go up one level from src/)
 app.use(express.static(join(__dirname, '..', 'public')));
+
+// QR Code generation routes
+app.use('/qrcode', qrcodeRouter);
 
 // =====================================================
 // IN-MEMORY STORAGE (will be replaced with database)
