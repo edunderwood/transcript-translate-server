@@ -1,4 +1,4 @@
-# DeBabel Transcript/Translation Server 
+# Open Word Transcript/Translation Server 
 
 ## Dependencies
 To run the server, you will need to provide credentials for Deepgram, Firebase and the Google Cloud Translation API.  
