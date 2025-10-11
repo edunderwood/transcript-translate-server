@@ -16,6 +16,7 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
+import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -32,6 +33,14 @@ import { supabase } from '../supabase.js';
 
 const app = express();
 const server = createServer(app);
+
+// Initialize Socket.IO for control panel and clients
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 // ES Module path setup
 const __filename = fileURLToPath(import.meta.url);
@@ -622,7 +631,58 @@ app.get('/api/service/:serviceId',
 );
 
 // =====================================================
-// WEBSOCKET SETUP
+// SOCKET.IO SETUP (for control panel compatibility)
+// =====================================================
+
+// Control namespace for control panel
+const controlNamespace = io.of('/control');
+
+controlNamespace.on('connection', (socket) => {
+  console.log('🔌 Control panel connected via Socket.IO:', socket.id);
+  
+  socket.on('monitor', (serviceId) => {
+    console.log(`📊 Monitoring service: ${serviceId}`);
+    socket.join(`service-${serviceId}`);
+    
+    // Send confirmation
+    socket.emit('registered', { serviceId });
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('🔌 Control panel disconnected');
+  });
+});
+
+// Participant namespace for clients
+const participantNamespace = io.of('/participant');
+
+participantNamespace.on('connection', (socket) => {
+  console.log('🔌 Participant connected via Socket.IO:', socket.id);
+  
+  socket.on('join', (serviceId) => {
+    console.log(`👤 Participant joined service: ${serviceId}`);
+    socket.join(`service-${serviceId}`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('🔌 Participant disconnected');
+  });
+});
+
+/**
+ * Broadcast message to all Socket.IO clients in a service
+ * @param {string} serviceId - Service ID
+ * @param {string} event - Event name
+ * @param {Object} data - Data to broadcast
+ */
+export function broadcastToSocketIO(serviceId, event, data) {
+  controlNamespace.to(`service-${serviceId}`).emit(event, data);
+  participantNamespace.to(`service-${serviceId}`).emit(event, data);
+  console.log(`📡 Socket.IO broadcast ${event} to service ${serviceId}`);
+}
+
+// =====================================================
+// WEBSOCKET SETUP (native ws)
 // =====================================================
 
 const wss = new WebSocketServer({ server });
@@ -792,7 +852,8 @@ server.listen(PORT, () => {
   console.log('   GET  /control              → Control center');
   console.log('   POST /auth/login           → Authentication');
   console.log('   GET  /health               → Health check');
-  console.log('   GET  /church/info          → Church config');
+  console.log('   GET  /church/info          → Church config (public API)');
+  console.log('   GET  /church/configuration → Control panel config');
   console.log('   GET  /api/church/profile   → User profile (auth)');
   console.log('   GET  /api/services         → User services (auth)');
   console.log('===========================================');
