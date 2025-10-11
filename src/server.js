@@ -791,17 +791,6 @@ export function broadcastToSocketIO(serviceId, event, data) {
 // =====================================================
 
 
-/**
- * Broadcast message to all Socket.IO clients in a service
- * @param {string} serviceId - Service ID
- * @param {string} event - Event name
- * @param {Object} data - Data to broadcast
- */
-export function broadcastToSocketIO(serviceId, event, data) {
-  controlNamespace.to(`service-${serviceId}`).emit(event, data);
-  participantNamespace.to(`service-${serviceId}`).emit(event, data);
-  console.log(`📡 Socket.IO broadcast ${event} to service ${serviceId}`);
-}
 
 // =====================================================
 // WEBSOCKET SETUP (native ws)
