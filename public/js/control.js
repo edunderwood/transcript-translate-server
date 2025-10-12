@@ -878,7 +878,7 @@ window.addEventListener("load", async () => {
 
     // Get a QR Code for this service
     const qrcode = await getQRCode({ serviceId: serviceCode });
-    const qrcodeBox = document.getElementById('qrcode-box');
+    const qrcodeBox = document.getElementById('qrcode');
     const parser = new DOMParser();
     const svgElement = parser.parseFromString(qrcode, 'image/svg+xml').documentElement;
     qrcodeBox.appendChild(svgElement);
