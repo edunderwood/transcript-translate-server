@@ -33,6 +33,25 @@ import { supabase } from '../supabase.js';
 // Import QR code routes
 import qrcodeRouter from './routes/qrcode.js';
 
+// =====================================================
+// PROCESS-LEVEL ERROR HANDLERS (Prevent crashes)
+// =====================================================
+
+// Prevent unhandled promise rejections from crashing server
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Promise Rejection at:', promise);
+  console.error('❌ Reason:', reason);
+  // Application continues running
+});
+
+// Prevent uncaught exceptions from crashing server
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  console.error('❌ Stack:', error.stack);
+  // Log but don't exit - server continues running
+  // In production, you may want to restart the process gracefully
+});
+
 const app = express();
 const server = createServer(app);
 
@@ -820,10 +839,21 @@ wss.on('connection', (ws, req) => {
   console.log(`✅ Client connected to service ${serviceId}`);
   console.log(`👥 Total connections for ${serviceId}: ${serviceConnections.get(serviceId).length}`);
 
+  // ✅ CRITICAL FIX: Error handler prevents server crashes from invalid WebSocket frames
+  ws.on('error', (error) => {
+    console.error(`❌ WebSocket error for service ${serviceId}:`, error.message);
+    // Don't crash the server - just log the error
+    // The connection will be cleaned up in the 'close' handler
+  });
+
   // Handle incoming messages (if needed)
   ws.on('message', (message) => {
-    console.log(`📨 Message from client on service ${serviceId}:`, message.toString());
-    // TODO: Handle client messages if needed
+    try {
+      console.log(`📨 Message from client on service ${serviceId}:`, message.toString());
+      // TODO: Handle client messages if needed
+    } catch (error) {
+      console.error(`❌ Error processing message:`, error.message);
+    }
   });
 
   // Handle connection close
@@ -846,14 +876,24 @@ wss.on('connection', (ws, req) => {
   });
 
   // Send initial connection confirmation
-  if (ws.readyState === 1) { // WebSocket.OPEN
-    ws.send(JSON.stringify({
-      type: 'connection',
-      message: 'Connected to translation service',
-      serviceId: serviceId,
-      timestamp: new Date().toISOString()
-    }));
+  try {
+    if (ws.readyState === 1) { // WebSocket.OPEN
+      ws.send(JSON.stringify({
+        type: 'connection',
+        message: 'Connected to translation service',
+        serviceId: serviceId,
+        timestamp: new Date().toISOString()
+      }));
+    }
+  } catch (error) {
+    console.error(`❌ Error sending initial message:`, error.message);
   }
+});
+
+// ✅ CRITICAL FIX: Server-level error handler prevents crashes
+wss.on('error', (error) => {
+  console.error('❌ WebSocket Server error:', error.message);
+  // Don't crash - just log it
 });
 
 /**
@@ -871,9 +911,14 @@ export function broadcastToService(serviceId, message) {
   let sentCount = 0;
 
   connections.forEach(ws => {
-    if (ws.readyState === 1) { // WebSocket.OPEN
-      ws.send(messageStr);
-      sentCount++;
+    try {
+      if (ws.readyState === 1) { // WebSocket.OPEN
+        ws.send(messageStr);
+        sentCount++;
+      }
+    } catch (error) {
+      console.error(`❌ Error broadcasting to client:`, error.message);
+      // Continue with other clients even if one fails
     }
   });
 
