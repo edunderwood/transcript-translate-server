@@ -820,13 +820,20 @@ const wss = new WebSocketServer({ server });
 wss.on('connection', (ws, req) => {
   console.log('🔌 New WebSocket connection');
 
+  // ✅ CRITICAL FIX: Add error handler FIRST, before any operations
+  ws.on('error', (error) => {
+    console.error(`❌ WebSocket error:`, error.message);
+    // Don't crash the server - just log the error
+  });
+
   // Extract service ID from URL or headers
   const url = new URL(req.url, `http://${req.headers.host}`);
   const serviceId = url.searchParams.get('serviceId');
 
   if (!serviceId) {
     console.warn('⚠️  WebSocket connection without serviceId');
-    ws.close(1008, 'Service ID required');
+    // Use terminate() instead of close() to avoid close code issues
+    ws.terminate();
     return;
   }
 
@@ -838,13 +845,6 @@ wss.on('connection', (ws, req) => {
 
   console.log(`✅ Client connected to service ${serviceId}`);
   console.log(`👥 Total connections for ${serviceId}: ${serviceConnections.get(serviceId).length}`);
-
-  // ✅ CRITICAL FIX: Error handler prevents server crashes from invalid WebSocket frames
-  ws.on('error', (error) => {
-    console.error(`❌ WebSocket error for service ${serviceId}:`, error.message);
-    // Don't crash the server - just log the error
-    // The connection will be cleaned up in the 'close' handler
-  });
 
   // Handle incoming messages (if needed)
   ws.on('message', (message) => {
