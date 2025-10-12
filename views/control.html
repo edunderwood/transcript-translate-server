@@ -5,38 +5,47 @@
     <link rel="stylesheet" href="/css/client.css">
     <title>Transcription Controller</title>
     <style>
-        /* Responsive QR Code */
+        /* Responsive QR Code - Compact 150px version */
+#qrcode {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 15px !important;
+    min-height: 180px !important;
+}
+
 #qrcode svg {
     width: 100%;
     height: auto;
-    max-width: 300px;
+    max-width: 150px;
+    max-height: 150px;
     display: block;
-}
-
-#qrcode {
-    width: 100%;
-    max-width: 300px;
     margin: 0 auto;
 }
 
-/* Responsive breakpoints for different screen sizes */
+/* Responsive breakpoints */
 @media (max-width: 768px) {
     #qrcode svg {
-        max-width: 250px;
+        max-width: 130px;
+        max-height: 130px;
     }
     #qrcode {
-        max-width: 250px;
+        padding: 12px !important;
+        min-height: 160px !important;
     }
 }
 
 @media (max-width: 480px) {
     #qrcode svg {
-        max-width: 200px;
+        max-width: 110px;
+        max-height: 110px;
     }
     #qrcode {
-        max-width: 200px;
+        padding: 10px !important;
+        min-height: 140px !important;
     }
 }
+
         /* Header Controls Container */
         .header-controls {
             position: absolute;
