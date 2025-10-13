@@ -32,11 +32,13 @@ import {
 import { supabase } from '../supabase.js';
 // Import QR code routes
 import qrcodeRouter from './routes/qrcode.js';
-
-// Import deepgarm transcribe routes
+// Import all route modules
 import deepgramRouter from './routes/deepgram.js';
+import authRouterOld from './routes/auth.js';
+import churchRouterOld from './routes/church.js';
 import roomRouter from './routes/room.js';
 import clientRouter from './routes/clients.js';
+
 // =====================================================
 // PROCESS-LEVEL ERROR HANDLERS (Prevent crashes)
 // =====================================================
@@ -91,10 +93,23 @@ app.use(express.static(join(__dirname, '..', 'public')));
 
 // QR Code generation routes
 app.use('/qrcode', qrcodeRouter);
-// Deepgram transcribe routes
+
+// =====================================================
+// API ROUTE REGISTRATIONS
+// =====================================================
+
+// CRITICAL: Deepgram routes - required for transcription functionality
 app.use('/deepgram', deepgramRouter);
+
+// Additional API routes
 app.use('/rooms', roomRouter);
 app.use('/clients', clientRouter);
+
+// Note: /auth and /church routes from old router are commented out
+// because this server.js has custom implementations below
+// If you need endpoints from the old routers, uncomment these:
+// app.use('/auth-old', authRouterOld);
+// app.use('/church-old', churchRouterOld);
 
 // =====================================================
 // IN-MEMORY STORAGE (will be replaced with database)
