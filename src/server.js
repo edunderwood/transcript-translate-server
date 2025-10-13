@@ -20,6 +20,18 @@ import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
+// ✅ ADD: Import translation system
+import { 
+  registerForServiceTranscripts, 
+  addTranslationLanguageToService,
+  removeTranslationLanguageFromService 
+} from './translate.js';
+import { transcriptAvailServiceSub } from './globals.js';
+import { 
+  serviceLanguageMap, 
+  serviceSubscriptionMap 
+} from './repositories/index.js';
+
 // Import Supabase authentication
 import { authenticateUser, authorizeService } from '../middleware/auth.js';
 import { getChurchByUserId, getChurchByKey, updateChurch } from '../db/churches.js';
@@ -814,20 +826,27 @@ socket.on('heartbeat', (data) => {
 });
   
   socket.on('transcriptReady', (data) => {
-    console.log(`📝 Transcript ready for service ${data.serviceCode}:`, data.transcript);
-    
-    // Broadcast to all participants in this service
-    participantNamespace.to(`service-${data.serviceCode}`).emit('newTranscript', {
-      transcript: data.transcript,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Also send confirmation back to control panel
-    socket.emit('transcriptSent', {
-      success: true,
-      serviceCode: data.serviceCode
-    });
+  console.log(`📝 Transcript ready for service ${data.serviceCode}:`, data.transcript);
+  
+  // ✅ FIX: Publish to translation system (this will handle translation and distribution)
+  transcriptAvailServiceSub.next({
+    serviceCode: data.serviceCode,
+    transcript: data.transcript,
+    serviceLanguageMap
   });
+  
+  // Keep existing broadcast for compatibility
+  participantNamespace.to(`service-${data.serviceCode}`).emit('newTranscript', {
+    transcript: data.transcript,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Send confirmation back to control panel
+  socket.emit('transcriptSent', {
+    success: true,
+    serviceCode: data.serviceCode
+  });
+});
   
   // Mark service as active when streaming starts
   socket.on('streamingStarted', (data) => {
@@ -866,36 +885,77 @@ participantNamespace.on('connection', (socket) => {
   let currentServiceId = null;
   let currentLanguage = null;
   
-  socket.on('join', (data) => {
-    // Support both formats: {serviceId, language} or just serviceId
-    const serviceId = typeof data === 'string' ? data : data.serviceId;
-    const language = typeof data === 'object' ? (data.language || 'unknown') : 'unknown';
-    
-    currentServiceId = serviceId;
-    currentLanguage = language;
-    
-    console.log(`👤 Participant joined service: ${serviceId}, language: ${language}`);
-    socket.join(`service-${serviceId}`);
-    
-    // Track subscriber
-    if (!subscriberTracker.has(serviceId)) {
-      subscriberTracker.set(serviceId, new Map());
+socket.on('join', (data) => {
+  let serviceId, language;
+  
+  // ✅ FIX: Handle multiple formats
+  if (typeof data === 'string') {
+    // Check if it's room format "serviceId:language"
+    if (data.includes(':')) {
+      const parts = data.split(':');
+      serviceId = parts[0];
+      language = parts[1];
+    } else {
+      // Just serviceId
+      serviceId = data;
+      language = 'unknown';
     }
-    const serviceSubscribers = subscriberTracker.get(serviceId);
-    
-    // Increment count for this language
-    const currentCount = serviceSubscribers.get(language) || 0;
-    serviceSubscribers.set(language, currentCount + 1);
-    
-    // Notify control panel of subscriber update
-    const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
-      name,
-      subscribers
-    }));
-    controlNamespace.to(`service-${serviceId}`).emit('subscribers', { languages });
-    
-    console.log(`📊 Updated subscribers for ${serviceId}:`, languages);
-  });
+  } else {
+    // Object format {serviceId, language}
+    serviceId = data.serviceId;
+    language = data.language || 'unknown';
+  }
+  
+  currentServiceId = serviceId;
+  currentLanguage = language;
+  
+  console.log(`👤 Participant joined service: ${serviceId}, language: ${language}`);
+  
+  // ✅ FIX: Join room using the room format for translation system
+  const room = `${serviceId}:${language}`;
+  socket.join(room);
+  console.log(`📥 Socket ${socket.id} joined room: ${room}`);
+  
+  // ✅ FIX: Register for translation service if not already registered
+  if (!serviceSubscriptionMap.has(serviceId)) {
+    console.log(`🔧 Registering translation service for ${serviceId}`);
+    registerForServiceTranscripts({
+      io: participantNamespace,
+      serviceId,
+      serviceLanguageMap,
+      serviceSubscriptionMap
+    });
+  }
+  
+  // ✅ FIX: Add language to service translation map (if not transcript room)
+  if (language !== 'transcript') {
+    addTranslationLanguageToService({
+      serviceId,
+      language,
+      serviceLanguageMap
+    });
+    console.log(`🌐 Added language ${language} to service ${serviceId}`);
+  }
+  
+  // Track subscriber for control panel display
+  if (!subscriberTracker.has(serviceId)) {
+    subscriberTracker.set(serviceId, new Map());
+  }
+  const serviceSubscribers = subscriberTracker.get(serviceId);
+  
+  // Increment count for this language
+  const currentCount = serviceSubscribers.get(language) || 0;
+  serviceSubscribers.set(language, currentCount + 1);
+  
+  // Notify control panel of subscriber update
+  const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
+    name,
+    subscribers
+  }));
+  controlNamespace.to(`service-${serviceId}`).emit('subscribers', { languages });
+  
+  console.log(`📊 Updated subscribers for ${serviceId}:`, languages);
+});
   
   socket.on('disconnect', () => {
     console.log('🔌 Participant disconnected:', socket.id);
@@ -912,6 +972,20 @@ participantNamespace.on('connection', (socket) => {
         } else {
           // Decrement count
           serviceSubscribers.set(currentLanguage, count - 1);
+          // ✅ FIX: Remove language from translation service if no more subscribers
+      if (currentLanguage !== 'transcript') {
+        const room = `${currentServiceId}:${currentLanguage}`;
+        const subscribersInRoom = participantNamespace.adapter.rooms.get(room)?.size || 0;
+        
+        if (subscribersInRoom === 0) {
+          removeTranslationLanguageFromService({
+            serviceId: currentServiceId,
+            language: currentLanguage,
+            serviceLanguageMap
+          });
+          console.log(`🧹 Removed language ${currentLanguage} from service ${currentServiceId}`);
+        }
+      }
         }
         
         // Notify control panel of subscriber update
