@@ -794,13 +794,14 @@ socket.on('heartbeat', (data) => {
   const { serviceCode, status } = data;
   console.log(`💓 Heartbeat from service ${serviceCode}:`, status);
   
-  // Mark service as active when receiving heartbeats with recording/streaming status
-  if (status === 'recording' || status === 'streaming' || status === 'livestreaming') {
-    activeServiceIds.set(serviceCode, true);
-    console.log(`✅ Service ${serviceCode} marked as active`);
-  }
+  // ✅ FIX: Mark service as active when receiving ANY heartbeat from control panel
+  // This indicates the console is running and available, allowing the language
+  // selector to be visible to users even before streaming starts
+  activeServiceIds.set(serviceCode, true);
+  console.log(`✅ Service ${serviceCode} marked as active (status: ${status})`);
   
-  // ✅ FIX 2: Broadcast livestream status to all clients
+  // Broadcast livestream status only when actually streaming
+  // This keeps the livestream indicator (OFF/ON) separate from service availability
   if (status === 'livestreaming' || status === 'streaming') {
     const heartbeatRoom = `${serviceCode}:heartbeat`;
     participantNamespace.to(heartbeatRoom).emit('livestreaming');
