@@ -880,8 +880,6 @@ socket.on('heartbeat', (data) => {
 // Participant namespace for clients
 const participantNamespace = io.of('/participant');
 
-const participantNamespace = io.of('/participant');
-
 participantNamespace.on('connection', (socket) => {
   console.log('🔌 Participant connected via Socket.IO:', socket.id);
   
