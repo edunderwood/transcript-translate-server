@@ -928,7 +928,7 @@ socket.on('join', (data) => {
   }
   
   // ✅ FIX: Add language to service translation map (if not transcript room)
-  if (language !== 'transcript') {
+  if (language !== 'transcript' && language !== 'heartbeat') {
     addTranslationLanguageToService({
       serviceId,
       language,
@@ -975,7 +975,7 @@ socket.on('join', (data) => {
 }
 
 // ✅ CORRECT: Cleanup OUTSIDE if/else blocks
-if (currentLanguage !== 'transcript') {
+if (currentLanguage !== 'transcript' && currentLanguage !== 'heartbeat') {
   const room = `${currentServiceId}:${currentLanguage}`;
   const subscribersInRoom = participantNamespace.adapter.rooms.get(room)?.size || 0;
   
