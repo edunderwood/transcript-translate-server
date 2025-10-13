@@ -967,26 +967,27 @@ socket.on('join', (data) => {
         const count = serviceSubscribers.get(currentLanguage);
         
         if (count <= 1) {
-          // Remove language entirely if this was the last subscriber
-          serviceSubscribers.delete(currentLanguage);
-        } else {
-          // Decrement count
-          serviceSubscribers.set(currentLanguage, count - 1);
-          // ✅ FIX: Remove language from translation service if no more subscribers
-      if (currentLanguage !== 'transcript') {
-        const room = `${currentServiceId}:${currentLanguage}`;
-        const subscribersInRoom = participantNamespace.adapter.rooms.get(room)?.size || 0;
-        
-        if (subscribersInRoom === 0) {
-          removeTranslationLanguageFromService({
-            serviceId: currentServiceId,
-            language: currentLanguage,
-            serviceLanguageMap
-          });
-          console.log(`🧹 Removed language ${currentLanguage} from service ${currentServiceId}`);
-        }
-      }
-        }
+  // Remove language entirely if this was the last subscriber
+  serviceSubscribers.delete(currentLanguage);
+} else {
+  // Decrement count
+  serviceSubscribers.set(currentLanguage, count - 1);
+}
+
+// ✅ CORRECT: Cleanup OUTSIDE if/else blocks
+if (currentLanguage !== 'transcript') {
+  const room = `${currentServiceId}:${currentLanguage}`;
+  const subscribersInRoom = participantNamespace.adapter.rooms.get(room)?.size || 0;
+  
+  if (subscribersInRoom === 0) {
+    removeTranslationLanguageFromService({
+      serviceId: currentServiceId,
+      language: currentLanguage,
+      serviceLanguageMap
+    });
+    console.log(`🧹 Removed language ${currentLanguage} from service ${currentServiceId}`);
+  }
+}
         
         // Notify control panel of subscriber update
         const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
