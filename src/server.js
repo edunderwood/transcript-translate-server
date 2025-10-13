@@ -35,7 +35,8 @@ import qrcodeRouter from './routes/qrcode.js';
 
 // Import deepgarm transcribe routes
 import deepgramRouter from './routes/deepgram.js';
-
+import roomRouter from './routes/room.js';
+import clientRouter from './routes/clients.js';
 // =====================================================
 // PROCESS-LEVEL ERROR HANDLERS (Prevent crashes)
 // =====================================================
@@ -92,6 +93,8 @@ app.use(express.static(join(__dirname, '..', 'public')));
 app.use('/qrcode', qrcodeRouter);
 // Deepgram transcribe routes
 app.use('/deepgram', deepgramRouter);
+app.use('/rooms', roomRouter);
+app.use('/clients', clientRouter);
 
 // =====================================================
 // IN-MEMORY STORAGE (will be replaced with database)
