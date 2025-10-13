@@ -121,6 +121,10 @@ const activeServices = new Map();
 // WebSocket connections per service
 const serviceConnections = new Map();
 
+// Track which services are currently active (streaming)
+// Used to determine if service is ready for client connections
+const activeServiceIds = new Map();
+
 // =====================================================
 // HELPER FUNCTIONS
 // =====================================================
@@ -341,7 +345,8 @@ app.get('/church/info', async (req, res) => {
         message: JSON.stringify(church.message || []),
         additionalWelcome: church.additional_welcome,
         waiting: church.waiting_message,
-        logo: church.logo_base64,
+        logo: church.logo_base64,  // Changed from "logo" to "base64Logo" to match client expectation
+        base64Logo: church.logo_base64,
         language: church.host_language,
         translationLanguages: JSON.stringify(church.translation_languages || []),
         defaultServiceId: church.default_service_id
@@ -363,7 +368,11 @@ app.get('/church/info', async (req, res) => {
 app.get('/church/:serviceId/status', async (req, res) => {
   try {
     const { serviceId } = req.params;
-    const isActive = await isServiceActive(serviceId);
+    
+    // Check in-memory first (for active streaming), then database
+    const isActiveInMemory = activeServiceIds.has(serviceId);
+    const isActiveInDB = await isServiceActive(serviceId);
+    const isActive = isActiveInMemory || isActiveInDB;
 
     res.json({
       success: true,
@@ -373,6 +382,73 @@ app.get('/church/:serviceId/status', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error checking service status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * Get livestream status for service
+ * Used by client LivestreamComponent to show session status
+ * PUBLIC - No authentication required
+ */
+app.get('/church/:serviceId/livestreaming', async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const status = activeServiceIds.has(serviceId) ? 'online' : 'offline';
+    
+    res.json({
+      success: true,
+      responseObject: {
+        status: status
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error checking livestream status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * Get active languages and subscriber counts for service
+ * Used by client to show which languages are being used
+ * PUBLIC - No authentication required
+ */
+app.get('/church/:serviceId/languages', async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    
+    // Get subscriber counts from Socket.IO rooms
+    const languages = [];
+    
+    // Check transcript room
+    const transcriptRoom = `service-${serviceId}`;
+    const room = participantNamespace.adapter.rooms.get(transcriptRoom);
+    const transcriptSubscribers = room ? room.size : 0;
+    
+    if (transcriptSubscribers > 0) {
+      languages.push({
+        name: "Transcript",
+        subscribers: transcriptSubscribers
+      });
+    }
+    
+    // TODO: Add language-specific room counting when implemented
+    
+    res.json({
+      success: true,
+      responseObject: {
+        serviceId: serviceId,
+        languages: languages
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error getting languages:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -715,8 +791,12 @@ controlNamespace.on('connection', (socket) => {
   
   socket.on('heartbeat', (data) => {
     console.log(`💓 Heartbeat from service ${data.serviceCode}:`, data.status);
-    // Update service status if needed - can be used for monitoring
-    // You could update the database or in-memory status here
+    
+    // Mark service as active when receiving heartbeats with recording/streaming status
+    if (data.status === 'recording' || data.status === 'streaming') {
+      activeServiceIds.set(data.serviceCode, true);
+      console.log(`✅ Service ${data.serviceCode} marked as active`);
+    }
   });
   
   socket.on('transcriptReady', (data) => {
@@ -733,6 +813,29 @@ controlNamespace.on('connection', (socket) => {
       success: true,
       serviceCode: data.serviceCode
     });
+  });
+  
+  // Mark service as active when streaming starts
+  socket.on('streamingStarted', (data) => {
+    const { serviceId } = data;
+    console.log(`🎙️ Streaming started for service ${serviceId}`);
+    
+    // Mark service as active
+    activeServiceIds.set(serviceId, true);
+    
+    // Set timeout to auto-deactivate after SERVICE_TIMEOUT minutes
+    const timeout = parseInt(process.env.SERVICE_TIMEOUT || '60') * 60 * 1000;
+    setTimeout(() => {
+      console.log(`⏰ Service ${serviceId} timeout reached - auto-deactivating`);
+      activeServiceIds.delete(serviceId);
+    }, timeout);
+  });
+  
+  // Mark service as inactive when streaming stops
+  socket.on('streamingStopped', (data) => {
+    const { serviceId } = data;
+    console.log(`🛑 Streaming stopped for service ${serviceId}`);
+    activeServiceIds.delete(serviceId);
   });
   
   socket.on('disconnect', () => {
