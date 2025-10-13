@@ -39,7 +39,8 @@ import {
   getServiceByServiceId, 
   updateServiceStatus, 
   isServiceActive,
-  getServicesByUser 
+  getServicesByUser,
+  createService
 } from '../db/services.js';
 import { supabase } from '../supabase.js';
 // Import QR code routes
