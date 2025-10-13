@@ -147,7 +147,7 @@ async function initializeTranslationService(serviceId, languages) {
     startedAt: new Date().toISOString(),
     connections: []
   });
-  
+    activeServiceIds.set(serviceId, true);
   console.log(`✅ Service ${serviceId} initialized`);
 }
 
@@ -173,8 +173,9 @@ async function cleanupTranslationService(serviceId) {
     });
     serviceConnections.delete(serviceId);
   }
-  
+
   activeServices.delete(serviceId);
+  activeServiceIds.delete(serviceId);
   console.log(`✅ Service ${serviceId} cleaned up`);
 }
 
@@ -789,15 +790,27 @@ controlNamespace.on('connection', (socket) => {
     socket.emit('registered', { serviceId });
   });
   
-  socket.on('heartbeat', (data) => {
-    console.log(`💓 Heartbeat from service ${data.serviceCode}:`, data.status);
-    
-    // Mark service as active when receiving heartbeats with recording/streaming status
-    if (data.status === 'recording' || data.status === 'streaming') {
-      activeServiceIds.set(data.serviceCode, true);
-      console.log(`✅ Service ${data.serviceCode} marked as active`);
-    }
-  });
+socket.on('heartbeat', (data) => {
+  const { serviceCode, status } = data;
+  console.log(`💓 Heartbeat from service ${serviceCode}:`, status);
+  
+  // Mark service as active when receiving heartbeats with recording/streaming status
+  if (status === 'recording' || status === 'streaming' || status === 'livestreaming') {
+    activeServiceIds.set(serviceCode, true);
+    console.log(`✅ Service ${serviceCode} marked as active`);
+  }
+  
+  // ✅ FIX 2: Broadcast livestream status to all clients
+  if (status === 'livestreaming' || status === 'streaming') {
+    const heartbeatRoom = `${serviceCode}:heartbeat`;
+    participantNamespace.to(heartbeatRoom).emit('livestreaming');
+    console.log(`📡 Broadcasting livestreaming to room: ${heartbeatRoom}`);
+  }
+  
+  // TODO: Send back subscriber list like old version
+  // const subscribers = getActiveLanguages(io, serviceCode);
+  // socket.emit('subscribers', subscribers);
+});
   
   socket.on('transcriptReady', (data) => {
     console.log(`📝 Transcript ready for service ${data.serviceCode}:`, data.transcript);
@@ -1117,6 +1130,47 @@ process.on('SIGINT', async () => {
 // =====================================================
 
 const PORT = process.env.PORT || 3001;
+
+// ✅ FIX 1c: Auto-create service in database
+async function ensureDefaultServiceExists() {
+  try {
+    const defaultServiceId = process.env.DEFAULT_SERVICE_ID;
+    const churchKey = process.env.CHURCH_KEY;
+    
+    if (!defaultServiceId || !churchKey) {
+      console.warn('⚠️  DEFAULT_SERVICE_ID or CHURCH_KEY not set in .env');
+      return;
+    }
+    
+    const exists = await getServiceByServiceId(defaultServiceId);
+    if (exists) {
+      console.log(`✅ Default service ${defaultServiceId} already exists`);
+      return;
+    }
+    
+    const church = await getChurchByKey(churchKey);
+    if (!church) {
+      console.error(`❌ Church not found with key: ${churchKey}`);
+      return;
+    }
+    
+    await createService(church.id, {
+      service_id: defaultServiceId,
+      name: 'Default Service',
+      active_languages: []
+    });
+    
+    console.log(`✅ Created default service: ${defaultServiceId}`);
+  } catch (error) {
+    console.error('❌ Error ensuring default service exists:', error);
+  }
+}
+
+// Add imports at top if needed:
+// import { getServiceByServiceId, createService } from '../db/services.js';
+// import { getChurchByKey } from '../db/churches.js';
+
+await ensureDefaultServiceExists();
 
 server.listen(PORT, () => {
   console.log('===========================================');
