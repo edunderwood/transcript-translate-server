@@ -880,132 +880,216 @@ socket.on('heartbeat', (data) => {
 // Participant namespace for clients
 const participantNamespace = io.of('/participant');
 
+const participantNamespace = io.of('/participant');
+
 participantNamespace.on('connection', (socket) => {
   console.log('🔌 Participant connected via Socket.IO:', socket.id);
   
-  let currentServiceId = null;
-  let currentLanguage = null;
+  // ✅ FIX: Track ALL rooms this socket joins, not just the last one
+  const socketRooms = new Map(); // Map of room -> language
   
-socket.on('join', (data) => {
-  let serviceId, language;
-  
-  // ✅ FIX: Handle multiple formats
-  if (typeof data === 'string') {
-    // Check if it's room format "serviceId:language"
-    if (data.includes(':')) {
-      const parts = data.split(':');
-      serviceId = parts[0];
-      language = parts[1];
-    } else {
-      // Just serviceId
-      serviceId = data;
-      language = 'unknown';
-    }
-  } else {
-    // Object format {serviceId, language}
-    serviceId = data.serviceId;
-    language = data.language || 'unknown';
-  }
-  
-  currentServiceId = serviceId;
-  currentLanguage = language;
-  
-  console.log(`👤 Participant joined service: ${serviceId}, language: ${language}`);
-  
-  // ✅ FIX: Join room using the room format for translation system
-  const room = `${serviceId}:${language}`;
-  socket.join(room);
-  console.log(`📥 Socket ${socket.id} joined room: ${room}`);
-  
-  // ✅ FIX: Register for translation service if not already registered
-  if (!serviceSubscriptionMap.has(serviceId)) {
-    console.log(`🔧 Registering translation service for ${serviceId}`);
-    registerForServiceTranscripts({
-      io: participantNamespace,
-      serviceId,
-      serviceLanguageMap,
-      serviceSubscriptionMap
-    });
-  }
-  
-  // ✅ FIX: Add language to service translation map (if not transcript room)
-  if (language !== 'transcript' && language !== 'heartbeat') {
-    addTranslationLanguageToService({
-      serviceId,
-      language,
-      serviceLanguageMap
-    });
-    console.log(`🌐 Added language ${language} to service ${serviceId}`);
-  }
-  
-  // Track subscriber for control panel display
-  if (!subscriberTracker.has(serviceId)) {
-    subscriberTracker.set(serviceId, new Map());
-  }
-  const serviceSubscribers = subscriberTracker.get(serviceId);
-  
-  // Increment count for this language
-  const currentCount = serviceSubscribers.get(language) || 0;
-  serviceSubscribers.set(language, currentCount + 1);
-  
-  // Notify control panel of subscriber update
-  const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
-    name,
-    subscribers
-  }));
-  controlNamespace.to(`service-${serviceId}`).emit('subscribers', { languages });
-  
-  console.log(`📊 Updated subscribers for ${serviceId}:`, languages);
-});
-  
-  socket.on('disconnect', () => {
-    console.log('🔌 Participant disconnected:', socket.id);
+  socket.on('join', (data) => {
+    let serviceId, language;
     
-    // Decrement subscriber count
-    if (currentServiceId && currentLanguage) {
-      const serviceSubscribers = subscriberTracker.get(currentServiceId);
-      if (serviceSubscribers && serviceSubscribers.has(currentLanguage)) {
-        const count = serviceSubscribers.get(currentLanguage);
+    // Handle multiple formats
+    if (typeof data === 'string') {
+      // Check if it's room format "serviceId:language"
+      if (data.includes(':')) {
+        const parts = data.split(':');
+        serviceId = parts[0];
+        language = parts[1];
+      } else {
+        // Just serviceId
+        serviceId = data;
+        language = 'unknown';
+      }
+    } else {
+      // Object format {serviceId, language}
+      serviceId = data.serviceId;
+      language = data.language || 'unknown';
+    }
+    
+    const room = `${serviceId}:${language}`;
+    
+    // ✅ FIX: Store this room for later cleanup
+    socketRooms.set(room, { serviceId, language });
+    
+    console.log(`👤 Participant joined service: ${serviceId}, language: ${language}`);
+    
+    // Join room
+    socket.join(room);
+    console.log(`📥 Socket ${socket.id} joined room: ${room}`);
+    
+    // Register for translation service if not already registered
+    if (!serviceSubscriptionMap.has(serviceId)) {
+      console.log(`🔧 Registering translation service for ${serviceId}`);
+      registerForServiceTranscripts({
+        io: participantNamespace,
+        serviceId,
+        serviceLanguageMap,
+        serviceSubscriptionMap
+      });
+    }
+    
+    // Add language to service translation map (exclude special rooms)
+    if (language !== 'transcript' && language !== 'heartbeat') {
+      addTranslationLanguageToService({
+        serviceId,
+        language,
+        serviceLanguageMap
+      });
+      console.log(`🌐 Added language ${language} to service ${serviceId}`);
+      
+      // ✅ FIX: Only track real language rooms in subscriber count
+      // Track subscriber for control panel display
+      if (!subscriberTracker.has(serviceId)) {
+        subscriberTracker.set(serviceId, new Map());
+      }
+      const serviceSubscribers = subscriberTracker.get(serviceId);
+      
+      // Increment count for this language
+      const currentCount = serviceSubscribers.get(language) || 0;
+      serviceSubscribers.set(language, currentCount + 1);
+      
+      // Notify control panel of subscriber update
+      const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
+        name,
+        subscribers
+      }));
+      controlNamespace.to(`service-${serviceId}`).emit('subscribers', { languages });
+      
+      console.log(`📊 Updated subscribers for ${serviceId}:`, languages);
+    } else {
+      console.log(`⏭️  Skipping subscriber tracking for special room: ${language}`);
+    }
+  });
+  
+  // ✅ NEW: Add 'leave' event handler
+  socket.on('leave', (data) => {
+    let serviceId, language;
+    
+    // Handle multiple formats
+    if (typeof data === 'string') {
+      if (data.includes(':')) {
+        const parts = data.split(':');
+        serviceId = parts[0];
+        language = parts[1];
+      } else {
+        serviceId = data;
+        language = 'unknown';
+      }
+    } else {
+      serviceId = data.serviceId;
+      language = data.language || 'unknown';
+    }
+    
+    const room = `${serviceId}:${language}`;
+    
+    console.log(`👋 Participant leaving room: ${room}`);
+    
+    // Leave the room
+    socket.leave(room);
+    
+    // ✅ Remove from tracking
+    socketRooms.delete(room);
+    
+    // ✅ Decrement subscriber count (only for real language rooms)
+    if (language !== 'transcript' && language !== 'heartbeat') {
+      const serviceSubscribers = subscriberTracker.get(serviceId);
+      if (serviceSubscribers && serviceSubscribers.has(language)) {
+        const count = serviceSubscribers.get(language);
         
         if (count <= 1) {
-  // Remove language entirely if this was the last subscriber
-  serviceSubscribers.delete(currentLanguage);
-} else {
-  // Decrement count
-  serviceSubscribers.set(currentLanguage, count - 1);
-}
-
-// ✅ CORRECT: Cleanup OUTSIDE if/else blocks
-if (currentLanguage !== 'transcript' && currentLanguage !== 'heartbeat') {
-  const room = `${currentServiceId}:${currentLanguage}`;
-  const subscribersInRoom = participantNamespace.adapter.rooms.get(room)?.size || 0;
-  
-  if (subscribersInRoom === 0) {
-    removeTranslationLanguageFromService({
-      serviceId: currentServiceId,
-      language: currentLanguage,
-      serviceLanguageMap
-    });
-    console.log(`🧹 Removed language ${currentLanguage} from service ${currentServiceId}`);
-  }
-}
+          // Remove language entirely if this was the last subscriber
+          serviceSubscribers.delete(language);
+          console.log(`🗑️  Removed ${language} from ${serviceId} (last subscriber left)`);
+        } else {
+          // Decrement count
+          serviceSubscribers.set(language, count - 1);
+          console.log(`📉 Decremented ${language} count to ${count - 1} for ${serviceId}`);
+        }
+        
+        // Check if room is truly empty
+        const subscribersInRoom = participantNamespace.adapter.rooms.get(room)?.size || 0;
+        if (subscribersInRoom === 0) {
+          removeTranslationLanguageFromService({
+            serviceId,
+            language,
+            serviceLanguageMap
+          });
+          console.log(`🧹 Removed language ${language} from service ${serviceId} translation map`);
+        }
         
         // Notify control panel of subscriber update
         const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
           name,
           subscribers
         }));
-        controlNamespace.to(`service-${currentServiceId}`).emit('subscribers', { languages });
+        controlNamespace.to(`service-${serviceId}`).emit('subscribers', { languages });
         
-        console.log(`📊 Updated subscribers for ${currentServiceId}:`, languages);
+        console.log(`📊 Updated subscribers for ${serviceId}:`, languages);
         
         // Clean up empty service tracker
         if (serviceSubscribers.size === 0) {
-          subscriberTracker.delete(currentServiceId);
-          console.log(`🧹 Cleaned up tracker for service ${currentServiceId}`);
+          subscriberTracker.delete(serviceId);
+          console.log(`🧹 Cleaned up empty tracker for service ${serviceId}`);
         }
       }
     }
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('🔌 Participant disconnected:', socket.id);
+    
+    // ✅ FIX: Clean up ALL rooms this socket was in, not just the last one
+    for (const [room, { serviceId, language }] of socketRooms.entries()) {
+      console.log(`🧹 Cleaning up room ${room} for disconnected socket`);
+      
+      // Decrement subscriber count (only for real language rooms)
+      if (language !== 'transcript' && language !== 'heartbeat') {
+        const serviceSubscribers = subscriberTracker.get(serviceId);
+        if (serviceSubscribers && serviceSubscribers.has(language)) {
+          const count = serviceSubscribers.get(language);
+          
+          if (count <= 1) {
+            serviceSubscribers.delete(language);
+            console.log(`🗑️  Removed ${language} from ${serviceId} (disconnected)`);
+          } else {
+            serviceSubscribers.set(language, count - 1);
+            console.log(`📉 Decremented ${language} to ${count - 1} (disconnected)`);
+          }
+          
+          // Check if room is truly empty
+          const subscribersInRoom = participantNamespace.adapter.rooms.get(room)?.size || 0;
+          if (subscribersInRoom === 0) {
+            removeTranslationLanguageFromService({
+              serviceId,
+              language,
+              serviceLanguageMap
+            });
+            console.log(`🧹 Removed language ${language} from translation map`);
+          }
+          
+          // Notify control panel
+          const languages = Array.from(serviceSubscribers.entries()).map(([name, subscribers]) => ({
+            name,
+            subscribers
+          }));
+          controlNamespace.to(`service-${serviceId}`).emit('subscribers', { languages });
+          
+          console.log(`📊 Updated subscribers for ${serviceId}:`, languages);
+          
+          // Clean up empty tracker
+          if (serviceSubscribers.size === 0) {
+            subscriberTracker.delete(serviceId);
+            console.log(`🧹 Cleaned up tracker for ${serviceId}`);
+          }
+        }
+      }
+    }
+    
+    // Clear the socket's room tracking
+    socketRooms.clear();
   });
 });
 
