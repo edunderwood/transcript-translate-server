@@ -15,13 +15,42 @@
             border-radius: 4px;
             display: none;
         }
+
+        .success-message {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
         .loading {
             opacity: 0.6;
             pointer-events: none;
         }
+
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .register-link a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -30,9 +59,10 @@
     <div class="container">
         <img src="/img/logo.png" alt="Logo" class="logo">
         <h1>Open Word</h1>
-        
+
+        <div id="success-message" class="success-message"></div>
         <div id="error-message" class="error-message"></div>
-        
+
         <form id="login-form" class="validated-form" novalidate>
             <input type="hidden" name="id" id="login-service-id">
             <div class="form-group">
@@ -45,11 +75,22 @@
             </div>
             <button type="submit" class="btn" id="login-btn">Login</button>
         </form>
+
+        <div class="register-link">
+            <p>Don't have an account? <a href="/register">Register your organization</a></p>
+        </div>
     </div>
-    
+
     <script>
-        // Get service ID from URL if present
+        // Check for registration success
         const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('registered') === 'true') {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = 'Registration successful! Please check your email to verify your account, then log in below.';
+            successDiv.style.display = 'block';
+        }
+
+        // Get service ID from URL if present
         const idParam = urlParams.get('id');
         if (idParam) {
             document.getElementById('login-service-id').value = idParam;
@@ -58,30 +99,32 @@
         // Handle form submission
         const form = document.getElementById('login-form');
         const errorDiv = document.getElementById('error-message');
+        const successDiv = document.getElementById('success-message');
         const loginBtn = document.getElementById('login-btn');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             // Clear previous errors
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
-            
+            successDiv.style.display = 'none';
+
             // Get form data
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            
+
             // Basic validation
             if (!email || !password) {
                 showError('Please enter both email and password');
                 return;
             }
-            
+
             // Disable button and show loading state
             loginBtn.disabled = true;
             loginBtn.textContent = 'Logging in...';
             form.classList.add('loading');
-            
+
             try {
                 // Send login request
                 const response = await fetch('/auth/login', {
@@ -91,9 +134,9 @@
                     },
                     body: JSON.stringify({ email, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     // Store session data
                     if (data.session && data.session.access_token) {
@@ -103,34 +146,34 @@
                     if (data.user) {
                         localStorage.setItem('user', JSON.stringify(data.user));
                     }
-                    
+
                     // Show success message briefly
                     loginBtn.textContent = 'Success! Redirecting...';
                     loginBtn.style.backgroundColor = '#28a745';
-                    
+
                     // Redirect to control panel
                     setTimeout(() => {
                         window.location.href = data.redirectUrl || '/control';
                     }, 500);
-                    
+
                 } else {
                     // Show error message
                     showError(data.message || 'Invalid email or password');
                     resetButton();
                 }
-                
+
             } catch (error) {
                 console.error('Login error:', error);
                 showError('Network error. Please check your connection and try again.');
                 resetButton();
             }
         });
-        
+
         function showError(message) {
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
         }
-        
+
         function resetButton() {
             loginBtn.disabled = false;
             loginBtn.textContent = 'Login';
