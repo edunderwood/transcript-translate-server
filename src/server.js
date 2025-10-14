@@ -1,5 +1,5 @@
 /**
- * DeBabel Translation Server with Supabase Authentication
+ * Open Word Translation Server with Supabase Authentication
  * ES Module Version
  * 
  * Main server file that integrates:
@@ -42,7 +42,7 @@ import {
   getServicesByUser,
   createService
 } from '../db/services.js';
-import { supabase } from '../supabase.js';
+import { supabase, supabaseAdmin } from '../supabase.js';
 // Import QR code routes
 import qrcodeRouter from './routes/qrcode.js';
 // Import all route modules
@@ -51,7 +51,6 @@ import authRouterOld from './routes/auth.js';
 import churchRouterOld from './routes/church.js';
 import roomRouter from './routes/room.js';
 import clientRouter from './routes/clients.js';
-
 
 // =====================================================
 // PROCESS-LEVEL ERROR HANDLERS (Prevent crashes)
@@ -98,7 +97,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Inject Supabase configuration
+// Inject Supabase configuration for registration page
 app.get('/register-config.js', (req, res) => {
   res.type('application/javascript');
   res.send(`
@@ -198,7 +197,7 @@ app.post('/api/register', async (req, res) => {
     const churchKey = generateChurchKey();
     const defaultServiceId = generateServiceId();
 
-    // Create church record
+    // Prepare church record data
     const churchData = {
       user_id: authData.user.id,
       name: organizationName,
@@ -215,7 +214,8 @@ app.post('/api/register', async (req, res) => {
       contact_phone: contactPhone || ''
     };
 
-    const { data: churchResult, error: churchError } = await supabase
+    // Create church record using admin client to bypass RLS
+    const { data: churchResult, error: churchError } = await supabaseAdmin
       .from('churches')
       .insert([churchData])
       .select()
@@ -229,7 +229,7 @@ app.post('/api/register', async (req, res) => {
       });
     }
 
-    // Create default service
+    // Create default service using admin client to bypass RLS
     const serviceData = {
       church_id: churchResult.id,
       service_id: defaultServiceId,
@@ -238,7 +238,7 @@ app.post('/api/register', async (req, res) => {
       active_languages: []
     };
 
-    await supabase.from('services').insert([serviceData]);
+    await supabaseAdmin.from('services').insert([serviceData]);
 
     // Return success
     res.json({
