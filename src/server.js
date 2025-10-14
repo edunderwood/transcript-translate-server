@@ -1,5 +1,5 @@
 /**
- * Open Word Translation Server with Supabase Authentication
+ * OpenWord Translation Server with Supabase Authentication
  * ES Module Version
  * 
  * Main server file that integrates:
