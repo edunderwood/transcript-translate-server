@@ -540,17 +540,18 @@ const setupDeepgram = () => {
 
 const getQRCode = async (data) => {
     const serviceId = data.serviceId;
-    console.log(`Service ID: ${serviceId}, Data: ${JSON.stringify(data)}`);
+    const format = data.format || 'svg'; // Default to svg for backward compatibility
+    console.log(`Service ID: ${serviceId}, Format: ${format}, Data: ${JSON.stringify(data)}`);
 
     const resp = await fetch('/qrcode/generate', {
         method: 'POST',
-        body: JSON.stringify({ serviceId }),
+        body: JSON.stringify({ serviceId, format }),
         headers: { 'Content-Type': 'application/json' }
     }).then(r => r.json()).catch(error => alert(error))
 
     if (resp.error) return alert(resp.error);
 
-    return resp.responseObject.qrCode;
+    return resp.responseObject;
 }
 
 const processConfigurationProperties = async () => {
@@ -877,10 +878,10 @@ window.addEventListener("load", async () => {
     })
 
     // Get a QR Code for this service
-    const qrcode = await getQRCode({ serviceId: serviceCode });
+    const qrcodeResponse = await getQRCode({ serviceId: serviceCode });
     const qrcodeBox = document.getElementById('qrcode');
     const parser = new DOMParser();
-    const svgElement = parser.parseFromString(qrcode, 'image/svg+xml').documentElement;
+    const svgElement = parser.parseFromString(qrcodeResponse.qrCode, 'image/svg+xml').documentElement;
     qrcodeBox.appendChild(svgElement);
 
     // Populate the dropdown lists of input languages
