@@ -50,22 +50,24 @@
     }
 }
 
-        /* QR Code Download Button */
+        /* QR Code Download Button - Header Style */
         .qrcode-download-btn {
             background-color: #4a90e2;
             color: white;
             border: none;
-            padding: 8px 16px;
-            margin-top: 10px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.3s;
-            width: 100%;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
         }
         
         .qrcode-download-btn:hover {
             background-color: #357abd;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         
         .qrcode-download-btn:active {
@@ -396,6 +398,9 @@
     
     <!-- Header Controls (Dark Mode Toggle + Logout) -->
     <div class="header-controls">
+        <!-- QR Code Download Button -->
+        <button class="qrcode-download-btn" id="downloadQRCode">📥 Download QR</button>
+        
         <!-- Dark Mode Toggle -->
         <div class="theme-toggle">
             <span class="theme-label" id="themeLabel">☀️ Light</span>
@@ -426,7 +431,6 @@
         <div class="button-box fixed-box-medium" id="qrcode-box">
             <h2>QR Code</h2>
             <div id="qrcode" style="display: flex; justify-content: center; align-items: center; padding: 10px; min-height: 200px;"></div>
-            <button class="qrcode-download-btn" id="downloadQRCode">📥 Download QR Code</button>
         </div>
         <div class="button-box fixed-box-large" style="padding-top: 10px;">
             <h2 style="margin-top: 0; margin-bottom: 10px;">Main Control</h2>
