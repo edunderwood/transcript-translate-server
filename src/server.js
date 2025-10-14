@@ -159,27 +159,15 @@ app.post('/api/register', async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 6 characters'
-      });
-    }
-
-    if (!translationLanguages || translationLanguages.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please select at least one translation language'
-      });
-    }
-
-    // Create user with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // ✅ FIX: Use supabaseAdmin to create user (bypasses email verification requirement)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
-      password: password
+      password: password,
+      email_confirm: true  // ✅ Auto-confirm email
     });
 
     if (authError) {
+      console.error('Auth error:', authError);
       return res.status(400).json({
         success: false,
         message: authError.message
@@ -192,6 +180,8 @@ app.post('/api/register', async (req, res) => {
         message: 'Failed to create user account'
       });
     }
+
+    console.log(`✅ Created user: ${authData.user.id}`);
 
     // Generate unique keys
     const churchKey = generateChurchKey();
@@ -214,7 +204,7 @@ app.post('/api/register', async (req, res) => {
       contact_phone: contactPhone || ''
     };
 
-    // Create church record using admin client to bypass RLS
+    // Create church record
     const { data: churchResult, error: churchError } = await supabaseAdmin
       .from('churches')
       .insert([churchData])
@@ -223,13 +213,20 @@ app.post('/api/register', async (req, res) => {
 
     if (churchError) {
       console.error('Church creation error:', churchError);
+      
+      // ✅ Cleanup: Delete user if church creation fails
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      
       return res.status(500).json({
         success: false,
-        message: 'Failed to create organization record'
+        message: 'Failed to create organization record',
+        error: churchError.message
       });
     }
 
-    // Create default service using admin client to bypass RLS
+    console.log(`✅ Created church: ${churchResult.id}`);
+
+    // Create default service
     const serviceData = {
       church_id: churchResult.id,
       service_id: defaultServiceId,
@@ -238,13 +235,25 @@ app.post('/api/register', async (req, res) => {
       active_languages: []
     };
 
-    await supabaseAdmin.from('services').insert([serviceData]);
+    const { error: serviceError } = await supabaseAdmin
+      .from('services')
+      .insert([serviceData]);
+
+    if (serviceError) {
+      console.error('Service creation error:', serviceError);
+      // Continue anyway - service can be created later
+    } else {
+      console.log(`✅ Created service: ${defaultServiceId}`);
+    }
 
     // Return success
     res.json({
       success: true,
       message: 'Registration successful',
-      user: authData.user,
+      user: {
+        id: authData.user.id,
+        email: authData.user.email
+      },
       church: churchResult
     });
 
@@ -252,7 +261,8 @@ app.post('/api/register', async (req, res) => {
     console.error('Registration error:', error);
     res.status(500).json({
       success: false,
-      message: 'An error occurred during registration'
+      message: 'An error occurred during registration',
+      error: error.message
     });
   }
 });
