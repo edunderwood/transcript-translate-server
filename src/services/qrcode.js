@@ -4,17 +4,33 @@ import { getDebabelClientUrl } from '../repositories/index.js';
 // Get the URL of the app
 const clientUrl = getDebabelClientUrl(); 
 
-export const generateQR = async ({serviceId}) => {
+export const generateQR = async ({serviceId, format = 'svg'}) => {
     const url = `${clientUrl}?serviceId=${serviceId}`;
     try {
-        // File Test QRCode.toFile(path.join(__dirname, `qrcode-${serviceId}.png`), url);
-        const qrcode = await QRCode.toString(url, { type: "svg" });
+        let qrcode;
+        
+        if (format === 'png') {
+            // Generate PNG as base64 data URL
+            qrcode = await QRCode.toDataURL(url, {
+                width: 512,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            });
+        } else {
+            // Default to SVG
+            qrcode = await QRCode.toString(url, { type: "svg" });
+        }
+        
         return {
             success: true,
             statusCode: 200,
             message: `QR Code generated successfully`,
             responseObject: {
-                qrCode: qrcode
+                qrCode: qrcode,
+                format: format
             }
         }
     } catch (err) {
