@@ -120,7 +120,7 @@ app.use('/clients', clientRouter);
 
 // Registration route
 app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, '../views/register.html'));
+  res.sendFile(join(__dirname, '../views/register.html'));
 });
 
 
