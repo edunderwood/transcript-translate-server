@@ -122,6 +122,148 @@ app.use('/clients', clientRouter);
 app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, '../views/register.html'));
 });
+
+
+// Optional: Server-side registration endpoint
+// (The client-side version handles this, but you can add server validation here)
+app.post('/api/register', async (req, res) => {
+  try {
+    const {
+      email,
+      password,
+      organizationName,
+      contactName,
+      contactPhone,
+      hostLanguage,
+      translationLanguages,
+      greeting,
+      additionalWelcome,
+      waitingMessage,
+      logoBase64
+    } = req.body;
+
+    // Validate required fields
+    if (!email || !password || !organizationName || !contactName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters'
+      });
+    }
+
+    if (!translationLanguages || translationLanguages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select at least one translation language'
+      });
+    }
+
+    // Create user with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email,
+      password: password
+    });
+
+    if (authError) {
+      return res.status(400).json({
+        success: false,
+        message: authError.message
+      });
+    }
+
+    if (!authData || !authData.user) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create user account'
+      });
+    }
+
+    // Generate unique keys
+    const churchKey = generateChurchKey();
+    const defaultServiceId = generateServiceId();
+
+    // Create church record
+    const churchData = {
+      user_id: authData.user.id,
+      name: organizationName,
+      church_key: churchKey,
+      greeting: greeting || 'Welcome!',
+      message: [],
+      additional_welcome: additionalWelcome || '',
+      waiting_message: waitingMessage || 'Service is currently offline',
+      logo_base64: logoBase64 || '',
+      host_language: hostLanguage || 'en-US',
+      translation_languages: translationLanguages,
+      default_service_id: defaultServiceId,
+      contact_name: contactName,
+      contact_phone: contactPhone || ''
+    };
+
+    const { data: churchResult, error: churchError } = await supabase
+      .from('churches')
+      .insert([churchData])
+      .select()
+      .single();
+
+    if (churchError) {
+      console.error('Church creation error:', churchError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create organization record'
+      });
+    }
+
+    // Create default service
+    const serviceData = {
+      church_id: churchResult.id,
+      service_id: defaultServiceId,
+      name: 'Main Service',
+      status: 'inactive',
+      active_languages: []
+    };
+
+    await supabase.from('services').insert([serviceData]);
+
+    // Return success
+    res.json({
+      success: true,
+      message: 'Registration successful',
+      user: authData.user,
+      church: churchResult
+    });
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred during registration'
+    });
+  }
+});
+
+// Helper function to generate unique church key
+function generateChurchKey() {
+  const random = Math.random().toString(36).substring(2, 15);
+  const timestamp = Date.now().toString(36);
+  return `CH_${random}${timestamp}`;
+}
+
+// Helper function to generate unique service ID
+function generateServiceId() {
+  const random = Math.random().toString(36).substring(2, 15);
+  const timestamp = Date.now().toString(36);
+  return `SVC_${random}${timestamp}`;
+}
+
+// =============================================================================
+// END REGISTRATION ROUTES
+// =============================================================================
 // Note: /auth and /church routes from old router are commented out
 // because this server.js has custom implementations below
 // If you need endpoints from the old routers, uncomment these:
