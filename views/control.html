@@ -50,6 +50,28 @@
     }
 }
 
+        /* QR Code Download Button */
+        .qrcode-download-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin-top: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .qrcode-download-btn:hover {
+            background-color: #357abd;
+        }
+        
+        .qrcode-download-btn:active {
+            background-color: #2868a8;
+        }
+
         /* Header Controls Container */
         .header-controls {
             position: absolute;
@@ -404,6 +426,7 @@
         <div class="button-box fixed-box-medium" id="qrcode-box">
             <h2>QR Code</h2>
             <div id="qrcode" style="display: flex; justify-content: center; align-items: center; padding: 10px; min-height: 200px;"></div>
+            <button class="qrcode-download-btn" id="downloadQRCode">📥 Download QR Code</button>
         </div>
         <div class="button-box fixed-box-large" style="padding-top: 10px;">
             <h2 style="margin-top: 0; margin-bottom: 10px;">Main Control</h2>
@@ -562,6 +585,124 @@
         
         // Attach save functionality to button
         document.getElementById('saveTranscript').addEventListener('click', saveTranscript);
+        
+        // Download QR Code Functionality
+        async function downloadQRCode() {
+            const qrcodeBox = document.getElementById('qrcode');
+            const svgElement = qrcodeBox.querySelector('svg');
+            
+            if (!svgElement) {
+                alert('No QR code to download! Please wait for the QR code to load.');
+                return;
+            }
+            
+            // Try Method 1: Client-side SVG to PNG conversion
+            try {
+                await downloadQRCodeClientSide(svgElement);
+            } catch (error) {
+                console.error('Client-side conversion failed:', error);
+                // Fallback to Method 2: Server-side PNG generation
+                try {
+                    await downloadQRCodeServerSide();
+                } catch (serverError) {
+                    console.error('Server-side generation failed:', serverError);
+                    alert('Failed to download QR code. Please try again.');
+                }
+            }
+        }
+        
+        // Method 1: Client-side SVG to PNG conversion
+        function downloadQRCodeClientSide(svgElement) {
+            return new Promise((resolve, reject) => {
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                // Set canvas size (increase for better quality)
+                const scale = 4;
+                const size = 512 * scale;
+                canvas.width = size;
+                canvas.height = size;
+                
+                const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+                
+                img.onload = function() {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, size, size);
+                    ctx.drawImage(img, 0, 0, size, size);
+                    
+                    canvas.toBlob(function(blob) {
+                        if (!blob) {
+                            reject(new Error('Failed to create blob'));
+                            return;
+                        }
+                        
+                        const downloadUrl = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.download = `qrcode_service_${Date.now()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(downloadUrl);
+                        URL.revokeObjectURL(url);
+                        
+                        alert('QR code downloaded successfully!');
+                        resolve();
+                    }, 'image/png');
+                };
+                
+                img.onerror = function() {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('Failed to load SVG'));
+                };
+                
+                img.src = url;
+            });
+        }
+        
+        // Method 2: Server-side PNG generation (fallback)
+        async function downloadQRCodeServerSide() {
+            // Get the service code from the page
+            const serviceIdInput = document.getElementById('serviceId');
+            if (!serviceIdInput || !serviceIdInput.value) {
+                throw new Error('Service ID not found');
+            }
+            
+            const serviceId = serviceIdInput.value;
+            
+            // Request PNG QR code from server
+            const response = await fetch('/qrcode/generate', {
+                method: 'POST',
+                body: JSON.stringify({ serviceId, format: 'png' }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to generate QR code on server');
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success || !data.responseObject.qrCode) {
+                throw new Error('Invalid server response');
+            }
+            
+            // data.responseObject.qrCode is a data URL, download it directly
+            const a = document.createElement('a');
+            a.href = data.responseObject.qrCode;
+            a.download = `qrcode_service_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            alert('QR code downloaded successfully!');
+        }
+        
+        // Attach download functionality to button
+        document.getElementById('downloadQRCode').addEventListener('click', downloadQRCode);
         
         // Clear Transcript Functionality
         function clearTranscript() {
