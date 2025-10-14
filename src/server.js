@@ -19,6 +19,7 @@ import { WebSocketServer } from 'ws';
 import { Server as SocketIOServer } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import registerRouter from './routes/register.js';
 
 // ✅ ADD: Import translation system
 import { 
@@ -90,6 +91,7 @@ const __dirname = dirname(__filename);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For form submissions
+app.use('/auth', registerRouter);
 
 // Logging middleware
 app.use((req, res, next) => {
