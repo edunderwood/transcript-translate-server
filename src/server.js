@@ -118,6 +118,10 @@ app.use('/deepgram', deepgramRouter);
 app.use('/rooms', roomRouter);
 app.use('/clients', clientRouter);
 
+// Registration route
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/register.html'));
+});
 // Note: /auth and /church routes from old router are commented out
 // because this server.js has custom implementations below
 // If you need endpoints from the old routers, uncomment these:
