@@ -52,6 +52,15 @@ import churchRouterOld from './routes/church.js';
 import roomRouter from './routes/room.js';
 import clientRouter from './routes/clients.js';
 
+// Inject Supabase configuration
+app.get('/register-config.js', (req, res) => {
+  res.type('application/javascript');
+  res.send(`
+    window.SUPABASE_URL = '${process.env.SUPABASE_URL}';
+    window.SUPABASE_ANON_KEY = '${process.env.SUPABASE_ANON_KEY}';
+  `);
+});
+
 // =====================================================
 // PROCESS-LEVEL ERROR HANDLERS (Prevent crashes)
 // =====================================================
