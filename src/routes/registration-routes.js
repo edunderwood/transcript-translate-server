@@ -9,7 +9,7 @@
  */
 
 import express from 'express';
-import { supabase, supabaseAdmin } from '../supabase.js';
+import { supabase, supabaseAdmin } from '../../supabase.js';
 import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
