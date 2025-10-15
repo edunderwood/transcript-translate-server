@@ -128,12 +128,7 @@ app.use('/deepgram', deepgramRouter);
 app.use('/rooms', roomRouter);
 app.use('/clients', clientRouter);
 
-// Registration route
-app.get('/register', (req, res) => {
-  res.sendFile(join(__dirname, '../views/register.html'));
-});
-
-// Two-stage registration routes
+// Two-stage registration routes (includes /register, /verify-email, /complete-setup)
 app.use('/', registrationRouter);
 
 // =============================================================================
