@@ -51,6 +51,7 @@ import authRouterOld from './routes/auth.js';
 import churchRouterOld from './routes/church.js';
 import roomRouter from './routes/room.js';
 import clientRouter from './routes/clients.js';
+import registrationRouter from './routes/registration-routes.js';
 
 // =====================================================
 // PROCESS-LEVEL ERROR HANDLERS (Prevent crashes)
@@ -132,32 +133,10 @@ app.get('/register', (req, res) => {
   res.sendFile(join(__dirname, '../views/register.html'));
 });
 
+// Two-stage registration routes
+app.use('/', registrationRouter);
 
-// Optional: Server-side registration endpoint
-// (The client-side version handles this, but you can add server validation here)
-app.post('/api/register', async (req, res) => {
-  try {
-    const {
-      email,
-      password,
-      organizationName,
-      contactName,
-      contactPhone,
-      hostLanguage,
-      translationLanguages,
-      greeting,
-      additionalWelcome,
-      waitingMessage,
-      logoBase64
-    } = req.body;
 
-    // Validate required fields
-    if (!email || !password || !organizationName || !contactName) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields'
-      });
-    }
 
     // ✅ FIX: Use supabaseAdmin to create user (bypasses email verification requirement)
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -280,6 +259,8 @@ function generateServiceId() {
   const timestamp = Date.now().toString(36);
   return `SVC_${random}${timestamp}`;
 }
+
+
 
 // =============================================================================
 // END REGISTRATION ROUTES
