@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/css/login.css">
+    <title>Register - Step 1</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success-message {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .form-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .back-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .info-box {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+            color: #004085;
+            font-size: 16px;
+        }
+
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+            color: #004085;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .step.inactive .step-number {
+            background-color: #ccc;
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .step-divider {
+            width: 40px;
+            height: 2px;
+            background-color: #ccc;
+        }
+    </style>
+</head>
+
+<body style="margin: 20px;">
+    <div class="container">
+        <img src="/img/logo.png" alt="Logo" class="logo">
+        <h1>Open Word</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 10px;">Create Your Account</p>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step">
+                <div class="step-number">1</div>
+                <span class="step-label">Account</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step inactive">
+                <div class="step-number">2</div>
+                <span class="step-label">Verify Email</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step inactive">
+                <div class="step-number">3</div>
+                <span class="step-label">Organization</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>📧 What happens next?</h3>
+            <ul>
+                <li>We'll send a verification email to your address</li>
+                <li>Click the link in the email to verify your account</li>
+                <li>After verification, you'll set up your organization details</li>
+            </ul>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+
+        <form id="register-form" class="validated-form" novalidate>
+            <!-- Account Information -->
+            <div class="form-section">
+                <h2>Account Information</h2>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" placeholder="admin@yourchurch.org" required
+                        autocomplete="email">
+                    <small>This will be your login username</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" name="password" placeholder="Minimum 8 characters" required
+                        minlength="8" autocomplete="new-password">
+                    <small>Use at least 8 characters with a mix of letters and numbers</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password *</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter password"
+                        required autocomplete="new-password">
+                </div>
+            </div>
+
+            <button type="submit" id="register-btn" class="btn" style="width: 100%;">
+                Create Account
+            </button>
+        </form>
+
+        <div class="back-link">
+            <p>Already have an account? <a href="/login">Sign in here</a></p>
+        </div>
+    </div>
+
+    <!-- Load Supabase configuration from server -->
+    <script src="/register-config.js"></script>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        // Supabase configuration
+        const supabaseUrl = window.SUPABASE_URL;
+        const supabaseKey = window.SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseKey) {
+            console.error('Supabase configuration missing');
+            showError('Configuration error. Please contact administrator.');
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const form = document.getElementById('register-form');
+        const errorDiv = document.getElementById('error-message');
+        const successDiv = document.getElementById('success-message');
+        const registerBtn = document.getElementById('register-btn');
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Clear messages
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Get form data
+            const formData = new FormData(form);
+            const email = formData.get('email').trim();
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+
+            // Validate
+            if (!email || !password) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            if (password.length < 8) {
+                showError('Password must be at least 8 characters');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+
+            // Disable button
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Creating Account...';
+            form.classList.add('loading');
+
+            try {
+                // Create user account with Supabase
+                // Note: email_confirm: false means user must verify email
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/verify-email`
+                    }
+                });
+
+                if (error) throw error;
+
+                if (!data || !data.user) {
+                    throw new Error('Failed to create user account');
+                }
+
+                // Success - redirect to verification page
+                window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
+
+            } catch (error) {
+                console.error('Registration error:', error);
+                
+                let errorMessage = 'An error occurred during registration. Please try again.';
+                
+                // Handle specific error cases
+                if (error.message.includes('already registered')) {
+                    errorMessage = 'This email is already registered. Please try logging in or use a different email.';
+                } else if (error.message.includes('rate limit')) {
+                    errorMessage = 'Too many registration attempts. Please try again in a few minutes.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showError(errorMessage);
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Create Account';
+                form.classList.remove('loading');
+            }
+        });
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    </script>
+</body>
+
+</html>

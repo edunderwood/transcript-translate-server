@@ -51,6 +51,7 @@ import authRouterOld from './routes/auth.js';
 import churchRouterOld from './routes/church.js';
 import roomRouter from './routes/room.js';
 import clientRouter from './routes/clients.js';
+import registrationRouter from './routes/registration-routes.js';
 
 // =====================================================
 // PROCESS-LEVEL ERROR HANDLERS (Prevent crashes)
@@ -132,154 +133,8 @@ app.get('/register', (req, res) => {
   res.sendFile(join(__dirname, '../views/register.html'));
 });
 
-
-// Optional: Server-side registration endpoint
-// (The client-side version handles this, but you can add server validation here)
-app.post('/api/register', async (req, res) => {
-  try {
-    const {
-      email,
-      password,
-      organizationName,
-      contactName,
-      contactPhone,
-      hostLanguage,
-      translationLanguages,
-      greeting,
-      additionalWelcome,
-      waitingMessage,
-      logoBase64
-    } = req.body;
-
-    // Validate required fields
-    if (!email || !password || !organizationName || !contactName) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields'
-      });
-    }
-
-    // ✅ FIX: Use supabaseAdmin to create user (bypasses email verification requirement)
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: email,
-      password: password,
-      email_confirm: true  // ✅ Auto-confirm email
-    });
-
-    if (authError) {
-      console.error('Auth error:', authError);
-      return res.status(400).json({
-        success: false,
-        message: authError.message
-      });
-    }
-
-    if (!authData || !authData.user) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to create user account'
-      });
-    }
-
-    console.log(`✅ Created user: ${authData.user.id}`);
-
-    // Generate unique keys
-    const churchKey = generateChurchKey();
-    const defaultServiceId = generateServiceId();
-
-    // Prepare church record data
-    const churchData = {
-      user_id: authData.user.id,
-      name: organizationName,
-      church_key: churchKey,
-      greeting: greeting || 'Welcome!',
-      message: [],
-      additional_welcome: additionalWelcome || '',
-      waiting_message: waitingMessage || 'Service is currently offline',
-      logo_base64: logoBase64 || '',
-      host_language: hostLanguage || 'en-US',
-      translation_languages: translationLanguages,
-      default_service_id: defaultServiceId,
-      contact_name: contactName,
-      contact_phone: contactPhone || ''
-    };
-
-    // Create church record
-    const { data: churchResult, error: churchError } = await supabaseAdmin
-      .from('churches')
-      .insert([churchData])
-      .select()
-      .single();
-
-    if (churchError) {
-      console.error('Church creation error:', churchError);
-      
-      // ✅ Cleanup: Delete user if church creation fails
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to create organization record',
-        error: churchError.message
-      });
-    }
-
-    console.log(`✅ Created church: ${churchResult.id}`);
-
-    // Create default service
-    const serviceData = {
-      church_id: churchResult.id,
-      service_id: defaultServiceId,
-      name: 'Main Service',
-      status: 'inactive',
-      active_languages: []
-    };
-
-    const { error: serviceError } = await supabaseAdmin
-      .from('services')
-      .insert([serviceData]);
-
-    if (serviceError) {
-      console.error('Service creation error:', serviceError);
-      // Continue anyway - service can be created later
-    } else {
-      console.log(`✅ Created service: ${defaultServiceId}`);
-    }
-
-    // Return success
-    res.json({
-      success: true,
-      message: 'Registration successful',
-      user: {
-        id: authData.user.id,
-        email: authData.user.email
-      },
-      church: churchResult
-    });
-
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'An error occurred during registration',
-      error: error.message
-    });
-  }
-});
-
-// Helper function to generate unique church key
-function generateChurchKey() {
-  const random = Math.random().toString(36).substring(2, 15);
-  const timestamp = Date.now().toString(36);
-  return `CH_${random}${timestamp}`;
-}
-
-// Helper function to generate unique service ID
-function generateServiceId() {
-  const random = Math.random().toString(36).substring(2, 15);
-  const timestamp = Date.now().toString(36);
-  return `SVC_${random}${timestamp}`;
-}
+// Two-stage registration routes
+app.use('/', registrationRouter);
 
 // =============================================================================
 // END REGISTRATION ROUTES
