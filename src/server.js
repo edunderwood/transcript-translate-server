@@ -43,12 +43,9 @@ import {
   createService
 } from '../db/services.js';
 import { supabase, supabaseAdmin } from '../supabase.js';
-// Import QR code routes
+// Import route modules
 import qrcodeRouter from './routes/qrcode.js';
-// Import all route modules
 import deepgramRouter from './routes/deepgram.js';
-import authRouterOld from './routes/auth.js';
-import churchRouterOld from './routes/church.js';
 import roomRouter from './routes/room.js';
 import clientRouter from './routes/clients.js';
 import registrationRouter from './routes/registration-routes.js';
@@ -128,22 +125,8 @@ app.use('/deepgram', deepgramRouter);
 app.use('/rooms', roomRouter);
 app.use('/clients', clientRouter);
 
-// Registration route
-app.get('/register', (req, res) => {
-  res.sendFile(join(__dirname, '../views/register.html'));
-});
-
-// Two-stage registration routes
+// Two-stage registration routes (includes /register, /verify-email, /complete-setup)
 app.use('/', registrationRouter);
-
-// =============================================================================
-// END REGISTRATION ROUTES
-// =============================================================================
-// Note: /auth and /church routes from old router are commented out
-// because this server.js has custom implementations below
-// If you need endpoints from the old routers, uncomment these:
-// app.use('/auth-old', authRouterOld);
-// app.use('/church-old', churchRouterOld);
 
 // =====================================================
 // IN-MEMORY STORAGE (will be replaced with database)
@@ -358,16 +341,26 @@ app.get('/health', (req, res) => {
  */
 app.get('/church/info', async (req, res) => {
   try {
-    // Get church key from query parameter or use default
-    const churchKey = req.query.key || process.env.CHURCH_KEY || 'default';
-    
+    // Support both 'church' and 'key' query parameters for flexibility
+    // 'church' is preferred for multi-org, 'key' for backward compatibility
+    const churchKey = req.query.church || req.query.key;
+
+    if (!churchKey) {
+      return res.status(400).json({
+        success: false,
+        error: 'Church key is required',
+        message: 'Please provide church key using ?church=YOUR_CHURCH_KEY or ?key=YOUR_CHURCH_KEY'
+      });
+    }
+
     console.log(`📍 Fetching church info for key: ${churchKey}`);
     const church = await getChurchByKey(churchKey);
 
     if (!church) {
       return res.status(404).json({
         success: false,
-        error: 'Church not found'
+        error: 'Church not found',
+        message: `No organization found with key: ${churchKey}`
       });
     }
 
@@ -497,8 +490,17 @@ app.get('/church/:serviceId/languages', async (req, res) => {
  */
 app.get('/getChurchInfo', async (req, res) => {
   console.log('⚠️  Legacy endpoint /getChurchInfo called, redirecting...');
-  const churchKey = req.query.key || process.env.CHURCH_KEY || 'default';
-  res.redirect(`/church/info?key=${churchKey}`);
+  const churchKey = req.query.church || req.query.key;
+
+  if (!churchKey) {
+    return res.status(400).json({
+      success: false,
+      error: 'Church key is required',
+      message: 'Please provide church key using ?church=YOUR_CHURCH_KEY or ?key=YOUR_CHURCH_KEY'
+    });
+  }
+
+  res.redirect(`/church/info?church=${churchKey}`);
 });
 
 /**
@@ -513,27 +515,25 @@ app.get('/getChurchInfo', async (req, res) => {
  */
 app.get('/church/configuration', async (req, res) => {
   try {
-    // Get church key from query parameter or environment variable
-    const churchKey = req.query.key || process.env.CHURCH_KEY || 'default';
-    
+    // Support both 'church' and 'key' query parameters
+    const churchKey = req.query.church || req.query.key;
+
+    if (!churchKey) {
+      return res.status(400).json({
+        success: false,
+        error: 'Church key is required',
+        message: 'Please provide church key using ?church=YOUR_CHURCH_KEY or ?key=YOUR_CHURCH_KEY'
+      });
+    }
+
     console.log(`📍 Fetching configuration for church key: ${churchKey}`);
     const church = await getChurchByKey(churchKey);
 
     if (!church) {
-      // Church not found in database - use environment variable fallback
-      console.warn(`⚠️  No church found for key "${churchKey}", using environment variables`);
-      
-      return res.json({
-        success: true,
-        responseObject: {
-          hostLanguage: process.env.HOST_LANGUAGE || 'en-GB',
-          defaultServiceId: process.env.DEFAULT_SERVICE_ID || generateRandomServiceId(),
-          serviceTimeout: process.env.SERVICE_TIMEOUT || '90',
-          translationLanguages: process.env.TRANSLATION_LANGUAGES 
-            ? JSON.parse(process.env.TRANSLATION_LANGUAGES) 
-            : ['Spanish', 'French', 'German'],
-          churchKey: churchKey
-        }
+      return res.status(404).json({
+        success: false,
+        error: 'Church not found',
+        message: `No organization found with key: ${churchKey}`
       });
     }
 
@@ -1345,10 +1345,6 @@ async function ensureDefaultServiceExists() {
     console.error('❌ Error ensuring default service exists:', error);
   }
 }
-
-// Add imports at top if needed:
-// import { getServiceByServiceId, createService } from '../db/services.js';
-// import { getChurchByKey } from '../db/churches.js';
 
 await ensureDefaultServiceExists();
 

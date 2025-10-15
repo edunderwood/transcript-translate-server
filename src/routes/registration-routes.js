@@ -9,7 +9,7 @@
  */
 
 import express from 'express';
-import { supabase, supabaseAdmin } from '../supabase.js';
+import { supabase, supabaseAdmin } from '../../supabase.js';
 import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -93,7 +93,7 @@ async function requireVerifiedEmail(req, res, next) {
  * GET /register
  */
 router.get('/register', (req, res) => {
-    res.sendFile(path.join(__dirname, '../views/register-step1.html'));
+    res.sendFile(path.join(__dirname, '../../views/register-step1.html'));
 });
 
 /**
@@ -101,7 +101,7 @@ router.get('/register', (req, res) => {
  * GET /verify-email
  */
 router.get('/verify-email', (req, res) => {
-    res.sendFile(path.join(__dirname, '../views/verify-email.html'));
+    res.sendFile(path.join(__dirname, '../../views/verify-email.html'));
 });
 
 /**
@@ -161,7 +161,7 @@ router.get('/api/check-verification', async (req, res) => {
  * GET /complete-setup
  */
 router.get('/complete-setup', (req, res) => {
-    res.sendFile(path.join(__dirname, '../views/complete-setup.html'));
+    res.sendFile(path.join(__dirname, '../../views/complete-setup.html'));
 });
 
 /**
