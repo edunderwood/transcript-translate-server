@@ -13,29 +13,13 @@ import { supabase, supabaseAdmin } from '../../supabase.js';
 import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { generateChurchKey } from '../../db/churches.js';
+import { generateServiceId } from '../../db/services.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const router = express.Router();
-
-/**
- * Helper function to generate unique church key
- */
-function generateChurchKey() {
-    const random = Math.random().toString(36).substring(2, 15);
-    const timestamp = Date.now().toString(36);
-    return `CH_${random}${timestamp}`.toUpperCase();
-}
-
-/**
- * Helper function to generate unique service ID
- */
-function generateServiceId() {
-    const random = Math.random().toString(36).substring(2, 15);
-    const timestamp = Date.now().toString(36);
-    return `SVC_${random}${timestamp}`.toUpperCase();
-}
 
 /**
  * Middleware to verify JWT token and check email verification
@@ -224,8 +208,8 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         }
 
         // Generate unique keys
-        const churchKey = generateChurchKey();
-        const defaultServiceId = generateServiceId();
+        const churchKey = await generateChurchKey(churchName);
+        const defaultServiceId = await generateServiceId();
 
         // Prepare church record data
         const churchData = {
