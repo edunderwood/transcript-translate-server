@@ -204,46 +204,103 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Translation Languages * (Select at least one)</label>
-                    <div class="checkbox-grid">
+                    <label>Translation Languages * (Select 1-5 languages)</label>
+                    <div class="checkbox-grid" id="language-checkboxes">
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="es"> Spanish
+                            <input type="checkbox" name="translationLanguages" data-name="Arabic" data-locale="ar-001"> Arabic
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="fr"> French
+                            <input type="checkbox" name="translationLanguages" data-name="Bengali" data-locale="bn-BD"> Bengali
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="de"> German
+                            <input type="checkbox" name="translationLanguages" data-name="Chinese (Simplified)" data-locale="zh-CN"> Chinese (Simplified)
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="it"> Italian
+                            <input type="checkbox" name="translationLanguages" data-name="Chinese (Traditional)" data-locale="zh-TW"> Chinese (Traditional)
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="pt"> Portuguese
+                            <input type="checkbox" name="translationLanguages" data-name="Dutch" data-locale="nl-NL"> Dutch
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="zh"> Chinese
+                            <input type="checkbox" name="translationLanguages" data-name="English" data-locale="en-US"> English
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="ja"> Japanese
+                            <input type="checkbox" name="translationLanguages" data-name="English (UK)" data-locale="en-GB"> English (UK)
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="ko"> Korean
+                            <input type="checkbox" name="translationLanguages" data-name="Filipino" data-locale="tl-PH"> Filipino
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="ar"> Arabic
+                            <input type="checkbox" name="translationLanguages" data-name="French" data-locale="fr-FR"> French
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="hi"> Hindi
+                            <input type="checkbox" name="translationLanguages" data-name="German" data-locale="de-DE"> German
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="ru"> Russian
+                            <input type="checkbox" name="translationLanguages" data-name="Greek" data-locale="el-GR"> Greek
                         </label>
                         <label class="checkbox-label">
-                            <input type="checkbox" name="translationLanguages" value="pl"> Polish
+                            <input type="checkbox" name="translationLanguages" data-name="Hebrew" data-locale="he-IL"> Hebrew
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Hindi" data-locale="hi-IN"> Hindi
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Indonesian" data-locale="id-ID"> Indonesian
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Italian" data-locale="it-IT"> Italian
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Japanese" data-locale="ja-JP"> Japanese
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Korean" data-locale="ko-KR"> Korean
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Persian" data-locale="fa-IR"> Persian
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Polish" data-locale="pl-PL"> Polish
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Portuguese" data-locale="pt-PT"> Portuguese
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Portuguese (Brazil)" data-locale="pt-BR"> Portuguese (Brazil)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Russian" data-locale="ru-RU"> Russian
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Spanish" data-locale="es-ES"> Spanish
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Spanish (Latin America)" data-locale="es-419"> Spanish (Latin America)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Spanish (Mexico)" data-locale="es-MX"> Spanish (Mexico)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Swahili" data-locale="sw-KE"> Swahili
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Thai" data-locale="th-TH"> Thai
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Turkish" data-locale="tr-TR"> Turkish
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Ukrainian" data-locale="uk-UA"> Ukrainian
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Urdu" data-locale="ur-PK"> Urdu
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="translationLanguages" data-name="Vietnamese" data-locale="vi-VN"> Vietnamese
                         </label>
                     </div>
-                    <small>Select all languages you want to offer translation for</small>
+                    <small id="language-counter">Select 1-5 languages you want to offer translation for (0 selected)</small>
                 </div>
             </div>
 
@@ -320,6 +377,44 @@
         const logoPreviewImg = document.getElementById('logo-preview-img');
 
         let logoBase64 = '';
+
+        // Language selection with max 5 limit
+        const languageCheckboxes = document.querySelectorAll('input[name="translationLanguages"]');
+        const languageCounter = document.getElementById('language-counter');
+        const MAX_LANGUAGES = 5;
+
+        languageCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const checkedCount = document.querySelectorAll('input[name="translationLanguages"]:checked').length;
+
+                // Update counter
+                languageCounter.textContent = `Select 1-5 languages you want to offer translation for (${checkedCount} selected)`;
+
+                // Update counter color
+                if (checkedCount === 0) {
+                    languageCounter.style.color = '#dc3545'; // red
+                } else if (checkedCount >= MAX_LANGUAGES) {
+                    languageCounter.style.color = '#28a745'; // green
+                } else {
+                    languageCounter.style.color = '#666'; // gray
+                }
+
+                // Disable unchecked boxes if limit reached
+                if (checkedCount >= MAX_LANGUAGES) {
+                    languageCheckboxes.forEach(cb => {
+                        if (!cb.checked) {
+                            cb.disabled = true;
+                            cb.parentElement.style.opacity = '0.5';
+                        }
+                    });
+                } else {
+                    languageCheckboxes.forEach(cb => {
+                        cb.disabled = false;
+                        cb.parentElement.style.opacity = '1';
+                    });
+                }
+            });
+        });
 
         // Check if user is verified
         async function checkVerification() {
@@ -403,10 +498,13 @@
             const additionalWelcome = formData.get('additionalWelcome').trim();
             const waitingMessage = formData.get('waitingMessage').trim() || 'Service is currently offline';
 
-            // Get selected translation languages
+            // Get selected translation languages in proper format
             const translationLanguages = Array.from(
                 document.querySelectorAll('input[name="translationLanguages"]:checked')
-            ).map(cb => cb.value);
+            ).map(cb => ({
+                name: cb.dataset.name,
+                locale: cb.dataset.locale
+            }));
 
             // Validate
             if (!churchName || !contactName) {
@@ -416,6 +514,11 @@
 
             if (translationLanguages.length === 0) {
                 showError('Please select at least one translation language');
+                return;
+            }
+
+            if (translationLanguages.length > MAX_LANGUAGES) {
+                showError(`Please select no more than ${MAX_LANGUAGES} translation languages`);
                 return;
             }
 
