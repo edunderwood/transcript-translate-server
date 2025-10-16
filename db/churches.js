@@ -216,29 +216,30 @@ async function deleteChurch(userId, churchId) {
 
 /**
  * Generate unique church key from church name
- * Format: INITIALS + unique suffix (max 12 characters)
- * Example: "Firmus Technology Ltd" → "FTL9A3B2C"
+ * Format: INITIALS-SUFFIX (max 15 characters including dash)
+ * Example: "Firmus Technology Ltd" → "FTL-9A3B2C"
+ * Example: "St John's 123 Church" → "SJ1C-8F4D1"
  * @param {string} churchName - Name of the church
  * @returns {string} Unique church key
  */
 async function generateChurchKey(churchName) {
-  // Extract initials from church name (first letter of each word)
+  // Extract first character of each word (letters and numbers)
   const initials = churchName
     .split(/\s+/)
     .map(word => word.charAt(0).toUpperCase())
-    .filter(char => /[A-Z]/.test(char)) // Only letters
+    .filter(char => /[A-Z0-9]/.test(char)) // Letters and numbers
     .join('')
     .substring(0, 4); // Max 4 initials
 
-  // Generate unique suffix to fill remaining characters (max 12 total)
-  const maxSuffixLength = 12 - initials.length;
+  // Generate unique suffix (max 15 total - initials - 1 for dash)
+  const maxSuffixLength = 15 - initials.length - 1;
   let attempts = 0;
   const maxAttempts = 10;
 
   while (attempts < maxAttempts) {
     // Generate random alphanumeric suffix
     const suffix = Math.random().toString(36).substring(2, 2 + maxSuffixLength).toUpperCase();
-    const churchKey = initials + suffix;
+    const churchKey = `${initials}-${suffix}`;
 
     // Check if this key is available
     const isAvailable = await isChurchKeyAvailable(churchKey);
@@ -251,7 +252,7 @@ async function generateChurchKey(churchName) {
 
   // If we couldn't generate a unique key, add timestamp
   const timestamp = Date.now().toString(36).substring(0, maxSuffixLength).toUpperCase();
-  return (initials + timestamp).substring(0, 12);
+  return `${initials}-${timestamp}`.substring(0, 15);
 }
 
 /**
