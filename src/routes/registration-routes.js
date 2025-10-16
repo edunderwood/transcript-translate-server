@@ -164,6 +164,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
             hostLanguage,
             translationLanguages,
             greeting,
+            message,
             additionalWelcome,
             waitingMessage,
             logoBase64
@@ -217,7 +218,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
             name: churchName,
             church_key: churchKey,
             greeting: greeting || 'Welcome!',
-            message: [],
+            message: message || [],
             additional_welcome: additionalWelcome || '',
             waiting_message: waitingMessage || 'Service is currently offline',
             logo_base64: logoBase64 || '',
