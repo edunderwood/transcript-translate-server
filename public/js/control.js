@@ -119,6 +119,10 @@ const languages = [
         value: "🇵🇭 Filipino"
     },
     {
+        key: "fil",
+        value: "🇵🇭 Filipino"
+    },
+    {
         key: "fi",
         value: "🇫🇮 Finnish"
     },
@@ -452,6 +456,7 @@ const localeMap = new Map([
     ["en-US", "🇺🇸 English (US)"],
     ["en-GB", "🇬🇧 English (UK)"],
     ["tl-PH", "🇵🇭 Filipino"],
+    ["fil-PH", "🇵🇭 Filipino"],
     ["fr-FR", "🇫🇷 French"],
     ["de-DE", "🇩🇪 German"],
     ["el-GR", "🇬🇷 Greek"],
