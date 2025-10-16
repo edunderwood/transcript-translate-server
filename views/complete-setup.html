@@ -319,7 +319,11 @@
                     <div class="phone-content">
                         <div class="mockup-logo" data-label="1"></div>
                         <div class="mockup-greeting" data-label="2">Welcome!</div>
-                        <div class="mockup-welcome" data-label="3">Thank you for joining us today. Please select your preferred language below.</div>
+                        <div class="mockup-welcome" data-label="3" style="font-size: 14px; line-height: 1.6; color: #333;">
+                            • Thank you for joining us today<br>
+                            • Please select your language below<br>
+                            • Translation will begin shortly
+                        </div>
                         <div class="mockup-languages" data-label="4">
                             <div class="mockup-language-btn">🇪🇸 Spanish</div>
                             <div class="mockup-language-btn">🇫🇷 French</div>
@@ -340,7 +344,7 @@
                     </div>
                     <div class="preview-label">
                         <div class="label-indicator">3</div>
-                        <div class="label-text"><strong>Additional Welcome</strong><br>Extended message (optional)</div>
+                        <div class="label-text"><strong>Welcome Messages</strong><br>Bullet points shown below greeting</div>
                     </div>
                     <div class="preview-label">
                         <div class="label-indicator">4</div>
@@ -529,6 +533,13 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="welcomeMessages">Welcome Messages</label>
+                    <textarea id="welcomeMessages" name="welcomeMessages"
+                        placeholder="Enter each message on a new line:&#10;Thank you for joining us today&#10;Please select your language below&#10;Translation will begin shortly" rows="5"></textarea>
+                    <small>Enter each message on a separate line. These will appear below the greeting.</small>
+                </div>
+
+                <div class="form-group">
                     <label for="additionalWelcome">Additional Welcome Message</label>
                     <textarea id="additionalWelcome" name="additionalWelcome"
                         placeholder="Thank you for joining us today..." rows="3"></textarea>
@@ -711,6 +722,12 @@
             const additionalWelcome = formData.get('additionalWelcome').trim();
             const waitingMessage = formData.get('waitingMessage').trim() || 'Service is currently offline';
 
+            // Convert welcome messages to JSON array (one message per line)
+            const welcomeMessagesText = formData.get('welcomeMessages').trim();
+            const welcomeMessages = welcomeMessagesText
+                ? welcomeMessagesText.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+                : [];
+
             // Get selected translation languages in proper format
             const translationLanguages = Array.from(
                 document.querySelectorAll('input[name="translationLanguages"]:checked')
@@ -763,6 +780,7 @@
                         hostLanguage,
                         translationLanguages,
                         greeting,
+                        message: welcomeMessages,
                         additionalWelcome,
                         waitingMessage,
                         logoBase64

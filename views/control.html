@@ -846,6 +846,12 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="settingsMessages">Welcome Messages</label>
+                        <textarea id="settingsMessages" rows="4" placeholder="Enter each message on a new line"></textarea>
+                        <small>Enter each message on a separate line. These appear as bullet points below the greeting.</small>
+                    </div>
+
+                    <div class="form-group">
                         <label for="settingsAdditionalWelcome">Additional Welcome Message</label>
                         <textarea id="settingsAdditionalWelcome"></textarea>
                     </div>
@@ -870,18 +876,17 @@
         </div>
     </div>
     <div class="button-container">
-        <div class="button-box fixed-box-small" style="flex: 0 0 130px;">
+        <div class="button-box fixed-box-small" style="flex: 0 0 180px;">
             <h2 style="margin-top: 0;">Service ID</h2>
             <p id="serviceId"></p>
             <div style="margin-top: 15px;">
                 <label for="key">Church Key</label>
-                <small style="display: block; color: #666; font-size: 11px; margin-bottom: 3px;">From database</small>
-                <input type="text" id="key" name="key" maxlength="10" size="10" style="width: 100%; margin-top: 5px;" readonly />
+                <input type="text" id="key" name="key" maxlength="15" size="15" style="width: 100%; margin-top: 5px; font-family: monospace; font-size: 13px;" readonly />
             </div>
         </div>
         <div class="button-box fixed-box-medium" id="qrcode-box">
-            <h2>QR Code</h2>
-            <div id="qrcode" style="display: flex; justify-content: center; align-items: center; padding: 10px; min-height: 200px;"></div>
+            <h2 style="margin-bottom: 5px;">QR Code</h2>
+            <div id="qrcode" style="display: flex; justify-content: center; align-items: center; padding: 5px 10px; min-height: 180px;"></div>
         </div>
         <div class="button-box fixed-box-large" style="padding-top: 10px;">
             <h2 style="margin-top: 0; margin-bottom: 10px;">Main Control</h2>
@@ -1096,6 +1101,11 @@
                     document.getElementById('settingsContactPhone').value = church.contact_phone || '';
                     document.getElementById('settingsHostLanguage').value = church.host_language || 'en-GB';
                     document.getElementById('settingsGreeting').value = church.greeting || '';
+
+                    // Convert message array to newline-separated text
+                    const messages = church.message || [];
+                    document.getElementById('settingsMessages').value = Array.isArray(messages) ? messages.join('\n') : '';
+
                     document.getElementById('settingsAdditionalWelcome').value = church.additional_welcome || '';
                     document.getElementById('settingsWaitingMessage').value = church.waiting_message || '';
 
@@ -1177,6 +1187,12 @@
                     locale: cb.dataset.locale
                 }));
 
+                // Convert welcome messages to JSON array
+                const messagesText = document.getElementById('settingsMessages').value.trim();
+                const welcomeMessages = messagesText
+                    ? messagesText.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+                    : [];
+
                 const settingsData = {
                     name: document.getElementById('settingsChurchName').value,
                     contact_name: document.getElementById('settingsContactName').value,
@@ -1184,6 +1200,7 @@
                     host_language: document.getElementById('settingsHostLanguage').value,
                     translation_languages: translationLanguages,
                     greeting: document.getElementById('settingsGreeting').value,
+                    message: welcomeMessages,
                     additional_welcome: document.getElementById('settingsAdditionalWelcome').value,
                     waiting_message: document.getElementById('settingsWaitingMessage').value
                 };
@@ -1229,36 +1246,63 @@
         });
         
         // Save Transcript Functionality
-        function saveTranscript() {
+        async function saveTranscript() {
             const transcriptList = document.getElementById('transcript');
             const transcriptItems = transcriptList.querySelectorAll('li');
-            
+
             if (transcriptItems.length === 0) {
                 alert('No transcript to save!');
                 return;
             }
-            
+
             // Collect transcript text
             let transcriptText = 'Transcript\n';
             transcriptText += '='.repeat(50) + '\n';
             transcriptText += 'Date: ' + new Date().toLocaleString() + '\n';
             transcriptText += '='.repeat(50) + '\n\n';
-            
+
             transcriptItems.forEach((item, index) => {
                 transcriptText += `${index + 1}. ${item.textContent}\n`;
             });
-            
-            // Create download
+
             const blob = new Blob([transcriptText], { type: 'text/plain' });
+            const defaultFilename = `transcript_${new Date().toISOString().slice(0,10)}_${Date.now()}.txt`;
+
+            // Try to use File System Access API for save dialog
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: defaultFilename,
+                        types: [{
+                            description: 'Text File',
+                            accept: { 'text/plain': ['.txt'] }
+                        }]
+                    });
+
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+
+                    alert('Transcript saved successfully!');
+                    return;
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('Error saving file:', err);
+                    }
+                    // User cancelled or error - fall through to download method
+                }
+            }
+
+            // Fallback: Traditional download
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `transcript_${new Date().toISOString().slice(0,10)}_${Date.now()}.txt`;
+            a.download = defaultFilename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            
+
             alert('Transcript saved successfully!');
         }
         
@@ -1291,37 +1335,66 @@
         }
         
         // Method 1: Client-side SVG to PNG conversion
-        function downloadQRCodeClientSide(svgElement) {
+        async function downloadQRCodeClientSide(svgElement) {
             return new Promise((resolve, reject) => {
                 const svgData = new XMLSerializer().serializeToString(svgElement);
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 const img = new Image();
-                
+
                 // Set canvas size (increase for better quality)
                 const scale = 4;
                 const size = 512 * scale;
                 canvas.width = size;
                 canvas.height = size;
-                
+
                 const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
                 const url = URL.createObjectURL(svgBlob);
-                
-                img.onload = function() {
+
+                img.onload = async function() {
                     ctx.fillStyle = '#FFFFFF';
                     ctx.fillRect(0, 0, size, size);
                     ctx.drawImage(img, 0, 0, size, size);
-                    
-                    canvas.toBlob(function(blob) {
+
+                    canvas.toBlob(async function(blob) {
                         if (!blob) {
                             reject(new Error('Failed to create blob'));
                             return;
                         }
-                        
+
+                        const defaultFilename = `qrcode_service_${Date.now()}.png`;
+
+                        // Try to use File System Access API for save dialog
+                        if ('showSaveFilePicker' in window) {
+                            try {
+                                const handle = await window.showSaveFilePicker({
+                                    suggestedName: defaultFilename,
+                                    types: [{
+                                        description: 'PNG Image',
+                                        accept: { 'image/png': ['.png'] }
+                                    }]
+                                });
+
+                                const writable = await handle.createWritable();
+                                await writable.write(blob);
+                                await writable.close();
+
+                                URL.revokeObjectURL(url);
+                                resolve();
+                                return;
+                            } catch (err) {
+                                if (err.name !== 'AbortError') {
+                                    console.error('Error saving file:', err);
+                                }
+                                // User cancelled or error - fall through to download method
+                            }
+                        }
+
+                        // Fallback: Traditional download
                         const downloadUrl = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = downloadUrl;
-                        a.download = `qrcode_service_${Date.now()}.png`;
+                        a.download = defaultFilename;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
