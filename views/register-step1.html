@@ -275,29 +275,44 @@
                     }
                 });
 
-                if (error) throw error;
+                if (error) {
+                    // Check for specific error cases
+                    if (error.message && error.message.toLowerCase().includes('already registered')) {
+                        throw new Error('This email is already registered. Please try logging in instead.');
+                    }
+                    throw error;
+                }
 
                 if (!data || !data.user) {
                     throw new Error('Failed to create user account');
                 }
 
-                // Success - redirect to verification page
+                // Check if user was already verified (shouldn't happen on signup, but handle it)
+                if (data.user.email_confirmed_at !== null) {
+                    showError('This email is already registered and verified. Please login instead.');
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = 'Create Account';
+                    form.classList.remove('loading');
+                    return;
+                }
+
+                // Success - user created and needs verification - redirect to verification page
                 window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
 
             } catch (error) {
                 console.error('Registration error:', error);
-                
+
                 let errorMessage = 'An error occurred during registration. Please try again.';
-                
+
                 // Handle specific error cases
-                if (error.message.includes('already registered')) {
-                    errorMessage = 'This email is already registered. Please try logging in or use a different email.';
+                if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+                    errorMessage = 'This email is already registered. Please try logging in instead.';
                 } else if (error.message.includes('rate limit')) {
                     errorMessage = 'Too many registration attempts. Please try again in a few minutes.';
                 } else if (error.message) {
                     errorMessage = error.message;
                 }
-                
+
                 showError(errorMessage);
                 registerBtn.disabled = false;
                 registerBtn.textContent = 'Create Account';

@@ -562,8 +562,11 @@
                     throw new Error(result.message || 'Failed to create organization');
                 }
 
-                // Success! Redirect to control panel
-                window.location.href = '/control?setup=complete';
+                // Success! Logout and redirect to login page
+                // User needs to login again to access control panel
+                await supabase.auth.signOut();
+                alert('Organization setup completed successfully! Please login to access the control panel.');
+                window.location.href = '/login';
 
             } catch (error) {
                 console.error('Setup error:', error);

@@ -590,7 +590,10 @@ const processConfigurationProperties = async () => {
 
         if (!resp.success || !resp.data) {
             console.error('❌ Failed to fetch church profile:', resp);
-            alert(`Failed to load church profile: ${resp.error || resp.message || 'Unknown error'}\n\nPlease ensure you have a church profile setup in Supabase.`);
+            alert(`Failed to load church profile: ${resp.error || resp.message || 'Unknown error'}\n\nPlease complete organization setup or contact support.`);
+            // Clear access token and redirect to login
+            localStorage.removeItem('access_token');
+            window.location.href = '/login';
             return;
         }
 
