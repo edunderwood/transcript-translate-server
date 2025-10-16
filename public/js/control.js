@@ -541,37 +541,84 @@ const setupDeepgram = () => {
 const getQRCode = async (data) => {
     const serviceId = data.serviceId;
     const format = data.format || 'svg'; // Default to svg for backward compatibility
-    console.log(`Service ID: ${serviceId}, Format: ${format}, Data: ${JSON.stringify(data)}`);
+
+    // Get church key from loaded church data
+    const churchKey = churchData ? churchData.church_key : null;
+
+    console.log(`🔍 Generating QR code - Service ID: ${serviceId}, Church Key: ${churchKey}, Format: ${format}`);
+
+    const requestBody = { serviceId, format };
+    if (churchKey) {
+        requestBody.churchKey = churchKey;
+    }
 
     const resp = await fetch('/qrcode/generate', {
         method: 'POST',
-        body: JSON.stringify({ serviceId, format }),
+        body: JSON.stringify(requestBody),
         headers: { 'Content-Type': 'application/json' }
     }).then(r => r.json()).catch(error => alert(error))
 
     if (resp.error) return alert(resp.error);
 
+    console.log(`✅ QR code generated successfully`);
     return resp.responseObject;
 }
 
-const processConfigurationProperties = async () => {
-    const resp = await fetch('/church/configuration', {
-        method: 'GET'
-    }).then(r => r.json())
-        .catch(error => alert(error));
+// Global church data
+let churchData = null;
 
-    if (resp.error) {
-        console.log(`Error fetching configuration: ${resp.error}`);
-        return alert(resp.error);
+const processConfigurationProperties = async () => {
+    // Get access token from localStorage (set during login)
+    const accessToken = localStorage.getItem('access_token');
+
+    if (!accessToken) {
+        console.error('❌ No access token found - redirecting to login');
+        alert('Please login first');
+        window.location.href = '/login';
+        return;
     }
 
-    console.log(`Response: ${JSON.stringify(resp)}`);
-    const data = resp.responseObject;
-    const serviceTimeout = data.serviceTimeout;
-    selectedLocale = data.hostLanguage;
-    defaultServiceCode = data.defaultServiceId;
-    serviceTimerDuration = parseInt(serviceTimeout) * 60 * 1000;
-    console.log(`Setting service timeout to ${serviceTimerDuration / 1000} seconds and language to ${selectedLocale}.`);
+    try {
+        // Fetch authenticated church profile
+        console.log('🔍 Fetching church profile with auth token');
+        const resp = await fetch('/api/church/profile', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        }).then(r => r.json());
+
+        if (!resp.success || !resp.data) {
+            console.error('❌ Failed to fetch church profile:', resp);
+            alert(`Failed to load church profile: ${resp.error || resp.message || 'Unknown error'}\n\nPlease ensure you have a church profile setup in Supabase.`);
+            return;
+        }
+
+        console.log('✅ Church profile loaded:', resp.data);
+        churchData = resp.data;
+
+        // Extract configuration
+        const data = resp.data;
+        selectedLocale = data.host_language || 'en-US';
+        defaultServiceCode = data.default_service_id || '1234';
+        serviceTimerDuration = 90 * 60 * 1000; // 90 minutes default
+
+        console.log(`Setting service ID to ${defaultServiceCode} and language to ${selectedLocale}`);
+
+        // Display church key in the UI (if there's an input field for it)
+        if (data.church_key) {
+            const keyInput = document.getElementById('key');
+            if (keyInput) {
+                keyInput.value = data.church_key;
+                keyInput.readOnly = true; // Make it read-only since it comes from database
+            }
+        }
+
+    } catch (error) {
+        console.error('❌ Error fetching church profile:', error);
+        alert(`Error loading church profile: ${error.message}\n\nPlease login again.`);
+        window.location.href = '/login';
+    }
 }
 
 const getLanguageString = (locale) => {
