@@ -441,6 +441,42 @@ const languages = [
 ];
 const languageMap = new Map(languages.map((obj) => [obj.key, obj.value]));
 
+// Additional locale-to-display mappings for the 32 available languages in registration
+const localeMap = new Map([
+    // Standard mappings with full locale codes
+    ["ar-001", "🇸🇦 Arabic"],
+    ["bn-BD", "🇧🇩 Bengali"],
+    ["zh-CN", "🇨🇳 Chinese (Simplified)"],
+    ["zh-TW", "🇹🇼 Chinese (Traditional)"],
+    ["nl-NL", "🇳🇱 Dutch"],
+    ["en-US", "🇺🇸 English (US)"],
+    ["en-GB", "🇬🇧 English (UK)"],
+    ["tl-PH", "🇵🇭 Filipino"],
+    ["fr-FR", "🇫🇷 French"],
+    ["de-DE", "🇩🇪 German"],
+    ["el-GR", "🇬🇷 Greek"],
+    ["he-IL", "🇮🇱 Hebrew"],
+    ["hi-IN", "🇮🇳 Hindi"],
+    ["id-ID", "🇮🇩 Indonesian"],
+    ["it-IT", "🇮🇹 Italian"],
+    ["ja-JP", "🇯🇵 Japanese"],
+    ["ko-KR", "🇰🇷 Korean"],
+    ["fa-IR", "🇮🇷 Persian"],
+    ["pl-PL", "🇵🇱 Polish"],
+    ["pt-PT", "🇵🇹 Portuguese"],
+    ["pt-BR", "🇧🇷 Portuguese (Brazil)"],
+    ["ru-RU", "🇷🇺 Russian"],
+    ["es-ES", "🇪🇸 Spanish"],
+    ["es-419", "🌎 Spanish (Latin America)"],
+    ["es-MX", "🇲🇽 Spanish (Mexico)"],
+    ["sw-KE", "🇰🇪 Swahili"],
+    ["th-TH", "🇹🇭 Thai"],
+    ["tr-TR", "🇹🇷 Turkish"],
+    ["uk-UA", "🇺🇦 Ukrainian"],
+    ["ur-PK", "🇵🇰 Urdu"],
+    ["vi-VN", "🇻🇳 Vietnamese"]
+]);
+
 
 // Method to see what audio input devices are available on the PC and populate
 // a drop-down list with these values
@@ -643,8 +679,26 @@ const processConfigurationProperties = async () => {
 }
 
 const getLanguageString = (locale) => {
-    const language = languageMap.get(locale);
-    return (language == undefined) ? locale : language;
+    // First, try exact match with full locale code (e.g., "tl-PH", "ar-001")
+    if (localeMap.has(locale)) {
+        return localeMap.get(locale);
+    }
+
+    // Then try simple language code (e.g., "tl", "ar")
+    if (languageMap.has(locale)) {
+        return languageMap.get(locale);
+    }
+
+    // If locale has a hyphen, extract the language code and try that
+    if (locale.includes('-')) {
+        const langCode = locale.split('-')[0];
+        if (languageMap.has(langCode)) {
+            return languageMap.get(langCode);
+        }
+    }
+
+    // If nothing found, return the original locale code
+    return locale;
 }
 
 const buildDeepgramUrl = () => {
