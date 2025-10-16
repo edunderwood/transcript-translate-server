@@ -614,6 +614,24 @@ const processConfigurationProperties = async () => {
             }
         }
 
+        // Update header with logo and church name
+        if (data.logo_base64) {
+            const headerLogo = document.getElementById('headerLogo');
+            if (headerLogo) {
+                headerLogo.src = data.logo_base64;
+                headerLogo.style.display = 'block';
+                console.log('✅ Header logo updated');
+            }
+        }
+
+        if (data.name) {
+            const headerChurchName = document.getElementById('headerChurchName');
+            if (headerChurchName) {
+                headerChurchName.textContent = data.name;
+                console.log(`✅ Header church name updated: ${data.name}`);
+            }
+        }
+
     } catch (error) {
         console.error('❌ Error fetching church profile:', error);
         alert(`Error loading church profile: ${error.message}\n\nPlease login again.`);

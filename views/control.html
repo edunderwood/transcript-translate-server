@@ -50,6 +50,56 @@
     }
 }
 
+        /* Main Header with Logo and Church Name */
+        .main-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .header-branding {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border-radius: 5px;
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .header-church-name {
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Dark mode support for header */
+        body.dark-mode .main-header {
+            border-bottom-color: #404040;
+        }
+
+        body.dark-mode .header-title {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .header-church-name {
+            color: #b0b0b0;
+        }
+
         /* QR Code Download Button - Header Style */
         .qrcode-download-btn {
             background-color: #4a90e2;
@@ -394,7 +444,16 @@
 </head>
 
 <body style="margin: 30px;">
-    <p>Open Word v1.1</p>
+    <!-- Main Header with Logo and Church Name -->
+    <div class="main-header">
+        <div class="header-branding">
+            <img id="headerLogo" class="header-logo" src="" alt="Logo" style="display: none;" />
+            <div class="header-text">
+                <span class="header-title"><strong>Open Word</strong> v1.1</span>
+                <span id="headerChurchName" class="header-church-name"></span>
+            </div>
+        </div>
+    </div>
 
     <!-- Header Controls (Dark Mode Toggle + Logout) -->
     <div class="header-controls">
