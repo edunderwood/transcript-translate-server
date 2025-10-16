@@ -5,12 +5,14 @@ import { getDebabelClientUrl } from '../repositories/index.js';
 const clientUrl = getDebabelClientUrl(); 
 
 export const generateQR = async ({serviceId, churchKey, format = 'svg'}) => {
+    console.log(`🔍 QR Generation - Received params:`, { serviceId, churchKey, format, clientUrl });
+
     // Build URL with both church and serviceId parameters
     const url = churchKey
         ? `${clientUrl}?church=${encodeURIComponent(churchKey)}&serviceId=${serviceId}`
         : `${clientUrl}?serviceId=${serviceId}`;
 
-    console.log(`Generating QR code for URL: ${url}`);
+    console.log(`✅ Generating QR code for URL: ${url}`);
     try {
         let qrcode;
         

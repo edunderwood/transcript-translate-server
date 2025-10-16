@@ -13,5 +13,7 @@ export const roomSubscriptionMap = new Map();
 export const streamingStatusMap = new Map();
 
 export const getDebabelClientUrl = () => {
-    return process.env.DEBABEL_CLIENT_URL;
+    // Support both variable names for backward compatibility
+    // DEBABEL_CLIENT_APP is preferred (newer), DEBABEL_CLIENT_URL is legacy
+    return process.env.DEBABEL_CLIENT_APP || process.env.DEBABEL_CLIENT_URL;
 }
