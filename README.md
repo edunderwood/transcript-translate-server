@@ -139,8 +139,11 @@ For that reason, you will need to setup some items in the .env file running in R
 - **CHURCH_LOGO_BASE64**: A Base64 string representing the church logo.  See next section for instructions on creating this string.
 - **CHURCH_WAITING_MESSAGE**: Message that appears at the bottom of the app telling the user that the Translation Service isn't ready yet.
 - **TRANSLATION_LANGUAGES**: Which languages you want to appear in the mobile app
-- **DEBABEL_CLIENT_APP**: The URL of the client web app.  This is used for generating the QR code automatically.          
-- **SERVICE_TIMEOUT**: The amount of time in minutes before the transcription/translation service automatically 
+- **DEBABEL_CLIENT_APP**: The URL of the client web app. This is used for generating the QR code automatically.
+  - **Note**: The legacy variable name `DEBABEL_CLIENT_URL` is also supported for backward compatibility.
+  - Use `DEBABEL_CLIENT_APP` (recommended) or `DEBABEL_CLIENT_URL` (legacy) - only one is needed.
+  - Example: `DEBABEL_CLIENT_APP=https://your-openword-client.vercel.app`
+- **SERVICE_TIMEOUT**: The amount of time in minutes before the transcription/translation service automatically
   turns off.  This is to avoid the possibility of running unintentionally for a long period of time and costing money.
 
 ### Configuring the church logo

@@ -156,6 +156,7 @@ NODE_ENV=production
 SERVICE_TIMEOUT=90
 
 # Client App URL (for QR code generation)
+# Use DEBABEL_CLIENT_APP (recommended) or DEBABEL_CLIENT_URL (legacy)
 DEBABEL_CLIENT_APP=https://your-app.vercel.app
 ```
 
