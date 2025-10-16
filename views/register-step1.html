@@ -287,16 +287,9 @@
                     throw new Error('Failed to create user account');
                 }
 
-                // Check if user was already verified (shouldn't happen on signup, but handle it)
-                if (data.user.email_confirmed_at !== null) {
-                    showError('This email is already registered and verified. Please login instead.');
-                    registerBtn.disabled = false;
-                    registerBtn.textContent = 'Create Account';
-                    form.classList.remove('loading');
-                    return;
-                }
-
-                // Success - user created and needs verification - redirect to verification page
+                // Success - redirect to verification page
+                // Note: Supabase may return success even for existing emails (to prevent enumeration)
+                // The verify-email page will detect if already verified and show appropriate message
                 window.location.href = `/verify-email?email=${encodeURIComponent(email)}`;
 
             } catch (error) {
