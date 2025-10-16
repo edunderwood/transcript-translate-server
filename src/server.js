@@ -218,10 +218,25 @@ app.get('/login', (req, res) => {
 
 /**
  * Control panel page
- * PUBLIC (authentication happens client-side)
+ * REDIRECT to new Next.js control panel on client app
+ *
+ * The old server-side control panel (views/control.html) is deprecated.
+ * Use the new multi-tenant Next.js control panel instead.
  */
 app.get('/control', (req, res) => {
-  res.sendFile(join(__dirname, '..', 'views', 'control.html'));
+  const clientUrl = getDebabelClientUrl();
+
+  if (clientUrl) {
+    // Redirect to new Next.js control panel
+    const controlUrl = `${clientUrl}/control`;
+    console.log(`🔄 Redirecting /control to Next.js app: ${controlUrl}`);
+    res.redirect(controlUrl);
+  } else {
+    // Fallback to old control panel if client URL not configured
+    console.warn('⚠️  DEBABEL_CLIENT_APP not configured - serving old control panel');
+    console.warn('⚠️  Please set DEBABEL_CLIENT_APP environment variable and use the Next.js control panel');
+    res.sendFile(join(__dirname, '..', 'views', 'control.html'));
+  }
 });
 
 /**
