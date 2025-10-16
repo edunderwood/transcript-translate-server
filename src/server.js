@@ -27,9 +27,10 @@ import {
   removeTranslationLanguageFromService 
 } from './translate.js';
 import { transcriptAvailServiceSub } from './globals.js';
-import { 
-  serviceLanguageMap, 
-  serviceSubscriptionMap 
+import {
+  serviceLanguageMap,
+  serviceSubscriptionMap,
+  getDebabelClientUrl
 } from './repositories/index.js';
 
 // Import Supabase authentication
