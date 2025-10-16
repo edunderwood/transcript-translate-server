@@ -132,6 +132,175 @@
             background-color: #007bff;
             transition: width 0.3s ease;
         }
+
+        /* Client Preview Mockup */
+        .preview-section {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .preview-section h3 {
+            margin-top: 0;
+            color: #495057;
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .phone-mockup {
+            width: 300px;
+            height: 550px;
+            border: 8px solid #333;
+            border-radius: 30px;
+            background: white;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .phone-notch {
+            width: 150px;
+            height: 25px;
+            background: #333;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 0 0 15px 15px;
+        }
+
+        .phone-content {
+            padding: 35px 20px 20px;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .mockup-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            position: relative;
+        }
+
+        .mockup-logo::after {
+            content: 'YOUR LOGO';
+            font-size: 10px;
+        }
+
+        .mockup-greeting {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            position: relative;
+        }
+
+        .mockup-welcome {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .mockup-languages {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            position: relative;
+        }
+
+        .mockup-language-btn {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .mockup-waiting {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .preview-labels {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .preview-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .label-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .label-text {
+            color: #495057;
+        }
+
+        .label-text strong {
+            color: #212529;
+        }
+
+        @media (max-width: 768px) {
+            .preview-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .phone-mockup {
+                width: 280px;
+                height: 500px;
+            }
+        }
     </style>
 </head>
 
@@ -140,6 +309,50 @@
         <img src="/img/logo.png" alt="Logo" class="logo">
         <h1>Open Word</h1>
         <p style="text-align: center; color: #666; margin-bottom: 10px;">Complete Your Organization Setup</p>
+
+        <!-- Client Screen Preview -->
+        <div class="preview-section">
+            <h3>📱 Preview: How Your Settings Appear on Participant Devices</h3>
+            <div class="preview-container">
+                <div class="phone-mockup">
+                    <div class="phone-notch"></div>
+                    <div class="phone-content">
+                        <div class="mockup-logo" data-label="1"></div>
+                        <div class="mockup-greeting" data-label="2">Welcome!</div>
+                        <div class="mockup-welcome" data-label="3">Thank you for joining us today. Please select your preferred language below.</div>
+                        <div class="mockup-languages" data-label="4">
+                            <div class="mockup-language-btn">🇪🇸 Spanish</div>
+                            <div class="mockup-language-btn">🇫🇷 French</div>
+                            <div class="mockup-language-btn">🇩🇪 German</div>
+                        </div>
+                        <div class="mockup-waiting" data-label="5">Service is currently offline</div>
+                    </div>
+                </div>
+
+                <div class="preview-labels">
+                    <div class="preview-label">
+                        <div class="label-indicator">1</div>
+                        <div class="label-text"><strong>Your Logo</strong><br>Uploaded image appears here</div>
+                    </div>
+                    <div class="preview-label">
+                        <div class="label-indicator">2</div>
+                        <div class="label-text"><strong>Greeting Text</strong><br>Main welcome message</div>
+                    </div>
+                    <div class="preview-label">
+                        <div class="label-indicator">3</div>
+                        <div class="label-text"><strong>Additional Welcome</strong><br>Extended message (optional)</div>
+                    </div>
+                    <div class="preview-label">
+                        <div class="label-indicator">4</div>
+                        <div class="label-text"><strong>Translation Languages</strong><br>Languages you selected (1-5)</div>
+                    </div>
+                    <div class="preview-label">
+                        <div class="label-indicator">5</div>
+                        <div class="label-text"><strong>Offline Message</strong><br>Shown when service is inactive</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Step Indicator -->
         <div class="step-indicator">
