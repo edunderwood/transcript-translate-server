@@ -599,7 +599,7 @@ const processConfigurationProperties = async () => {
 
         // Extract configuration
         const data = resp.data;
-        selectedLocale = data.host_language || 'en-US';
+        selectedLocale = data.host_language || 'en-GB';
         defaultServiceCode = data.default_service_id || '1234';
         serviceTimerDuration = 90 * 60 * 1000; // 90 minutes default
 

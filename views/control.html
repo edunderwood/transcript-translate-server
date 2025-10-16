@@ -50,41 +50,133 @@
     }
 }
 
-        /* Main Header with Logo and Church Name */
+        /* Main Header with Logo and Church Name - Redesigned */
         .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 15px;
+            padding: 15px 0;
             border-bottom: 2px solid #e0e0e0;
+            min-height: 80px;
         }
 
-        .header-branding {
+        .header-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+            flex: 1;
         }
 
         .header-logo {
-            width: 50px;
-            height: 50px;
+            height: 70px;
+            width: auto;
+            max-width: 200px;
             object-fit: contain;
-            border-radius: 5px;
+            border-radius: 8px;
         }
 
-        .header-text {
+        .header-church-name {
+            font-size: 24px;
+            color: #333;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-right {
             display: flex;
-            flex-direction: column;
-            gap: 5px;
+            align-items: center;
+            gap: 20px;
         }
 
         .header-title {
             font-size: 20px;
             color: #333;
+            font-weight: 700;
+            white-space: nowrap;
         }
 
-        .header-church-name {
-            font-size: 16px;
-            color: #666;
-            font-weight: 500;
+        /* Hamburger Menu */
+        .hamburger-menu {
+            position: relative;
+            cursor: pointer;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 35px;
+            height: 35px;
+            background: transparent;
+            border: none;
+        }
+
+        .hamburger-menu span {
+            width: 100%;
+            height: 3px;
+            background-color: #333;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-menu:hover span {
+            background-color: #007bff;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 220px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-menu a,
+        .dropdown-menu button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-menu a:hover,
+        .dropdown-menu button:hover {
+            background-color: #f5f5f5;
+        }
+
+        .dropdown-menu a:first-child {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .dropdown-menu a:last-child,
+        .dropdown-menu button:last-child {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 5px 0;
         }
 
         /* Dark mode support for header */
@@ -92,12 +184,222 @@
             border-bottom-color: #404040;
         }
 
-        body.dark-mode .header-title {
+        body.dark-mode .header-title,
+        body.dark-mode .header-church-name {
             color: #e0e0e0;
         }
 
-        body.dark-mode .header-church-name {
+        body.dark-mode .hamburger-menu span {
+            background-color: #e0e0e0;
+        }
+
+        body.dark-mode .dropdown-menu {
+            background: #2d2d2d;
+            border-color: #404040;
+        }
+
+        body.dark-mode .dropdown-menu a,
+        body.dark-mode .dropdown-menu button {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .dropdown-menu a:hover,
+        body.dark-mode .dropdown-menu button:hover {
+            background-color: #404040;
+        }
+
+        body.dark-mode .dropdown-divider {
+            background-color: #404040;
+        }
+
+        /* Settings Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .language-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .language-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        /* Dark mode for modal */
+        body.dark-mode .modal-content {
+            background-color: #2d2d2d;
+        }
+
+        body.dark-mode .modal-header {
+            border-bottom-color: #404040;
+        }
+
+        body.dark-mode .modal-header h2,
+        body.dark-mode .form-group label {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .modal-close {
             color: #b0b0b0;
+        }
+
+        body.dark-mode .modal-close:hover {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .form-group input,
+        body.dark-mode .form-group select,
+        body.dark-mode .form-group textarea {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            border-color: #404040;
+        }
+
+        body.dark-mode .language-checkboxes {
+            background-color: #1a1a1a;
+            border-color: #404040;
+        }
+
+        body.dark-mode .modal-footer {
+            border-top-color: #404040;
         }
 
         /* QR Code Download Button - Header Style */
@@ -428,11 +730,23 @@
             background-color: #2d2d2d !important;
         }
         
+        /* Transcript Box - Improved Sizing */
+        #transcript-text-box {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        #transcript {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
         /* Smooth transition for theme switch */
         body {
             transition: background-color 0.3s ease, color 0.3s ease;
         }
-        
+
         .button-box,
         .text-box-large,
         input,
@@ -444,32 +758,109 @@
 </head>
 
 <body style="margin: 30px;">
-    <!-- Main Header with Logo and Church Name -->
+    <!-- Redesigned Header -->
     <div class="main-header">
-        <div class="header-branding">
+        <div class="header-left">
             <img id="headerLogo" class="header-logo" src="" alt="Logo" style="display: none;" />
-            <div class="header-text">
-                <span class="header-title"><strong>Open Word</strong> v1.1</span>
-                <span id="headerChurchName" class="header-church-name"></span>
-            </div>
+            <h1 id="headerChurchName" class="header-church-name"></h1>
+        </div>
+        <div class="header-right">
+            <span class="header-title"><strong>Open Word</strong> v1.1</span>
+            <button class="hamburger-menu" id="hamburgerMenu" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </div>
 
-    <!-- Header Controls (Dark Mode Toggle + Logout) -->
-    <div class="header-controls">
-        <!-- QR Code Download Button -->
-        <button class="qrcode-download-btn" id="downloadQRCode">📥 Download QR</button>
-        
-        <!-- Dark Mode Toggle -->
-        <div class="theme-toggle">
-            <span class="theme-label" id="themeLabel">☀️ Light</span>
-            <div class="toggle-switch" id="themeToggle">
-                <div class="toggle-slider">☀️</div>
+    <!-- Dropdown Menu -->
+    <div class="dropdown-menu" id="dropdownMenu">
+        <button id="darkModeMenuItem">
+            <span id="darkModeIcon">🌙</span>
+            <span id="darkModeText">Dark Mode</span>
+        </button>
+        <div class="dropdown-divider"></div>
+        <button id="downloadQRMenuItem">
+            <span>📥</span>
+            <span>Export QR Code</span>
+        </button>
+        <div class="dropdown-divider"></div>
+        <button id="settingsMenuItem">
+            <span>⚙️</span>
+            <span>Church Settings</span>
+        </button>
+        <div class="dropdown-divider"></div>
+        <button id="logoutMenuItem">
+            <span>🚪</span>
+            <span>Logout</span>
+        </button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Church Settings</h2>
+                <button class="modal-close" id="closeSettingsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="settingsChurchName">Church Name</label>
+                        <input type="text" id="settingsChurchName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsContactName">Contact Name</label>
+                        <input type="text" id="settingsContactName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsContactPhone">Contact Phone</label>
+                        <input type="tel" id="settingsContactPhone">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsHostLanguage">Host Language</label>
+                        <select id="settingsHostLanguage" required>
+                            <option value="en-GB">English (UK)</option>
+                            <option value="en-US">English (US)</option>
+                            <option value="es-ES">Spanish</option>
+                            <option value="fr-FR">French</option>
+                            <option value="de-DE">German</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Translation Languages (Max 5)</label>
+                        <div class="language-checkboxes" id="settingsLanguageCheckboxes">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                        <small id="settingsLanguageCounter">0 selected</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsGreeting">Greeting Text</label>
+                        <input type="text" id="settingsGreeting">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsAdditionalWelcome">Additional Welcome Message</label>
+                        <textarea id="settingsAdditionalWelcome"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsWaitingMessage">Offline Message</label>
+                        <input type="text" id="settingsWaitingMessage">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelSettings">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveSettings">Save Changes</button>
             </div>
         </div>
-        
-        <!-- Logout Button -->
-        <button id="logoutBtn" class="logout-btn">Logout</button>
     </div>
 
     <div>
@@ -541,64 +932,288 @@
     <script src="/js/common.js"></script>
     <script src="/js/control.js"></script>
     
-    <!-- Dark Mode & Logout functionality -->
+    <!-- Hamburger Menu, Dark Mode, Settings & Logout functionality -->
     <script>
-        // Dark Mode Toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const themeLabel = document.getElementById('themeLabel');
+        // ============================================================
+        // HAMBURGER MENU
+        // ============================================================
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        // Toggle dropdown menu
+        hamburgerMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdownMenu.contains(e.target) && !hamburgerMenu.contains(e.target)) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+
+        // ============================================================
+        // DARK MODE TOGGLE
+        // ============================================================
         const body = document.body;
-        const toggleSlider = document.querySelector('.toggle-slider');
-        
+        const darkModeMenuItem = document.getElementById('darkModeMenuItem');
+        const darkModeIcon = document.getElementById('darkModeIcon');
+        const darkModeText = document.getElementById('darkModeText');
+
         // Check for saved theme preference or default to light mode
         const currentTheme = localStorage.getItem('theme') || 'light';
-        
+
         // Apply saved theme on load
         if (currentTheme === 'dark') {
             body.classList.add('dark-mode');
-            themeToggle.classList.add('dark');
-            themeLabel.textContent = '🌙 Dark';
-            toggleSlider.textContent = '🌙';
+            darkModeIcon.textContent = '☀️';
+            darkModeText.textContent = 'Light Mode';
         }
-        
+
         // Toggle theme on click
-        themeToggle.addEventListener('click', function() {
+        darkModeMenuItem.addEventListener('click', function() {
             body.classList.toggle('dark-mode');
-            themeToggle.classList.toggle('dark');
-            
+
             if (body.classList.contains('dark-mode')) {
-                themeLabel.textContent = '🌙 Dark';
-                toggleSlider.textContent = '🌙';
+                darkModeIcon.textContent = '☀️';
+                darkModeText.textContent = 'Light Mode';
                 localStorage.setItem('theme', 'dark');
             } else {
-                themeLabel.textContent = '☀️ Light';
-                toggleSlider.textContent = '☀️';
+                darkModeIcon.textContent = '🌙';
+                darkModeText.textContent = 'Dark Mode';
                 localStorage.setItem('theme', 'light');
             }
+
+            dropdownMenu.classList.remove('show');
         });
-        
-        // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', function() {
+
+        // ============================================================
+        // QR CODE DOWNLOAD
+        // ============================================================
+        document.getElementById('downloadQRMenuItem').addEventListener('click', function() {
+            downloadQRCode();
+            dropdownMenu.classList.remove('show');
+        });
+
+        // ============================================================
+        // LOGOUT FUNCTIONALITY
+        // ============================================================
+        document.getElementById('logoutMenuItem').addEventListener('click', function() {
             if (confirm('Are you sure you want to logout?')) {
                 // Clear the Church Key before logout
                 document.getElementById('key').value = '';
-                
-                // Try to sign out from Firebase if available
-                if (typeof firebase !== 'undefined' && firebase.auth) {
-                    firebase.auth().signOut()
-                        .then(() => {
-                            console.log('User signed out successfully');
-                            window.location.href = '/login';
-                        })
-                        .catch((error) => {
-                            console.error('Logout error:', error);
-                            window.location.href = '/login';
-                        });
-                } else {
-                    window.location.href = '/login';
-                }
+
+                // Clear access token
+                localStorage.removeItem('access_token');
+
+                window.location.href = '/login';
+            }
+            dropdownMenu.classList.remove('show');
+        });
+
+        // ============================================================
+        // SETTINGS MODAL FUNCTIONALITY
+        // ============================================================
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsMenuItem = document.getElementById('settingsMenuItem');
+        const closeSettingsModal = document.getElementById('closeSettingsModal');
+        const cancelSettings = document.getElementById('cancelSettings');
+        const saveSettings = document.getElementById('saveSettings');
+        const settingsForm = document.getElementById('settingsForm');
+
+        // Language list for settings
+        const AVAILABLE_LANGUAGES = [
+            {"name": "Arabic", "locale": "ar-001"},
+            {"name": "Bengali", "locale": "bn-BD"},
+            {"name": "Chinese (Simplified)", "locale": "zh-CN"},
+            {"name": "Chinese (Traditional)", "locale": "zh-TW"},
+            {"name": "Dutch", "locale": "nl-NL"},
+            {"name": "English", "locale": "en-US"},
+            {"name": "English (UK)", "locale": "en-GB"},
+            {"name": "Filipino", "locale": "tl-PH"},
+            {"name": "French", "locale": "fr-FR"},
+            {"name": "German", "locale": "de-DE"},
+            {"name": "Greek", "locale": "el-GR"},
+            {"name": "Hebrew", "locale": "he-IL"},
+            {"name": "Hindi", "locale": "hi-IN"},
+            {"name": "Indonesian", "locale": "id-ID"},
+            {"name": "Italian", "locale": "it-IT"},
+            {"name": "Japanese", "locale": "ja-JP"},
+            {"name": "Korean", "locale": "ko-KR"},
+            {"name": "Persian", "locale": "fa-IR"},
+            {"name": "Polish", "locale": "pl-PL"},
+            {"name": "Portuguese", "locale": "pt-PT"},
+            {"name": "Portuguese (Brazil)", "locale": "pt-BR"},
+            {"name": "Russian", "locale": "ru-RU"},
+            {"name": "Spanish", "locale": "es-ES"},
+            {"name": "Spanish (Latin America)", "locale": "es-419"},
+            {"name": "Spanish (Mexico)", "locale": "es-MX"},
+            {"name": "Swahili", "locale": "sw-KE"},
+            {"name": "Thai", "locale": "th-TH"},
+            {"name": "Turkish", "locale": "tr-TR"},
+            {"name": "Ukrainian", "locale": "uk-UA"},
+            {"name": "Urdu", "locale": "ur-PK"},
+            {"name": "Vietnamese", "locale": "vi-VN"}
+        ];
+
+        // Open settings modal
+        settingsMenuItem.addEventListener('click', function() {
+            loadSettings();
+            settingsModal.classList.add('show');
+            dropdownMenu.classList.remove('show');
+        });
+
+        // Close modal handlers
+        closeSettingsModal.addEventListener('click', function() {
+            settingsModal.classList.remove('show');
+        });
+
+        cancelSettings.addEventListener('click', function() {
+            settingsModal.classList.remove('show');
+        });
+
+        // Close modal when clicking outside
+        settingsModal.addEventListener('click', function(e) {
+            if (e.target === settingsModal) {
+                settingsModal.classList.remove('show');
             }
         });
-        
+
+        // Load current settings into modal
+        async function loadSettings() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const response = await fetch('/api/church/profile', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const church = result.data;
+                    document.getElementById('settingsChurchName').value = church.name || '';
+                    document.getElementById('settingsContactName').value = church.contact_name || '';
+                    document.getElementById('settingsContactPhone').value = church.contact_phone || '';
+                    document.getElementById('settingsHostLanguage').value = church.host_language || 'en-GB';
+                    document.getElementById('settingsGreeting').value = church.greeting || '';
+                    document.getElementById('settingsAdditionalWelcome').value = church.additional_welcome || '';
+                    document.getElementById('settingsWaitingMessage').value = church.waiting_message || '';
+
+                    // Populate language checkboxes
+                    populateLanguageCheckboxes(church.translation_languages || []);
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                alert('Failed to load settings. Please try again.');
+            }
+        }
+
+        // Populate language checkboxes
+        function populateLanguageCheckboxes(selectedLanguages) {
+            const container = document.getElementById('settingsLanguageCheckboxes');
+            const counter = document.getElementById('settingsLanguageCounter');
+            container.innerHTML = '';
+
+            const selectedLocales = selectedLanguages.map(lang => lang.locale);
+
+            AVAILABLE_LANGUAGES.forEach(lang => {
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = lang.locale;
+                checkbox.dataset.name = lang.name;
+                checkbox.dataset.locale = lang.locale;
+
+                if (selectedLocales.includes(lang.locale)) {
+                    checkbox.checked = true;
+                }
+
+                // Add change listener for 5 language limit
+                checkbox.addEventListener('change', function() {
+                    const checkedCount = container.querySelectorAll('input:checked').length;
+                    counter.textContent = `${checkedCount} selected`;
+
+                    if (checkedCount >= 5) {
+                        container.querySelectorAll('input:not(:checked)').forEach(cb => {
+                            cb.disabled = true;
+                            cb.parentElement.style.opacity = '0.5';
+                        });
+                    } else {
+                        container.querySelectorAll('input').forEach(cb => {
+                            cb.disabled = false;
+                            cb.parentElement.style.opacity = '1';
+                        });
+                    }
+                });
+
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(' ' + lang.name));
+                container.appendChild(label);
+            });
+
+            // Update initial counter
+            const checkedCount = selectedLocales.length;
+            counter.textContent = `${checkedCount} selected`;
+        }
+
+        // Save settings
+        saveSettings.addEventListener('click', async function() {
+            try {
+                const container = document.getElementById('settingsLanguageCheckboxes');
+                const checkedBoxes = container.querySelectorAll('input:checked');
+
+                if (checkedBoxes.length === 0) {
+                    alert('Please select at least one translation language.');
+                    return;
+                }
+
+                if (checkedBoxes.length > 5) {
+                    alert('Please select no more than 5 translation languages.');
+                    return;
+                }
+
+                const translationLanguages = Array.from(checkedBoxes).map(cb => ({
+                    name: cb.dataset.name,
+                    locale: cb.dataset.locale
+                }));
+
+                const settingsData = {
+                    name: document.getElementById('settingsChurchName').value,
+                    contact_name: document.getElementById('settingsContactName').value,
+                    contact_phone: document.getElementById('settingsContactPhone').value,
+                    host_language: document.getElementById('settingsHostLanguage').value,
+                    translation_languages: translationLanguages,
+                    greeting: document.getElementById('settingsGreeting').value,
+                    additional_welcome: document.getElementById('settingsAdditionalWelcome').value,
+                    waiting_message: document.getElementById('settingsWaitingMessage').value
+                };
+
+                const accessToken = localStorage.getItem('access_token');
+                const response = await fetch('/api/church/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(settingsData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert('Settings saved successfully!');
+                    settingsModal.classList.remove('show');
+                    // Reload page to reflect changes
+                    location.reload();
+                } else {
+                    throw new Error(result.message || 'Failed to save settings');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Failed to save settings: ' + error.message);
+            }
+        });
+
         // Clear Church Key when page is about to unload (browser close, refresh, navigate away)
         window.addEventListener('beforeunload', function() {
             document.getElementById('key').value = '';
