@@ -114,12 +114,18 @@ async function getChurchById(churchId) {
  */
 async function createChurch(userId, churchData) {
   try {
+    // Generate church key from name if not provided
+    const churchName = churchData.name || 'My Church';
+    const churchKey = churchData.church_key || await generateChurchKey(churchName);
+
+    console.log(`🔑 Generated church key: ${churchKey} for ${churchName}`);
+
     const { data, error } = await supabaseAdmin
       .from('churches')
       .insert([{
         user_id: userId,
-        name: churchData.name || 'My Church',
-        church_key: churchData.church_key || generateChurchKey(),
+        name: churchName,
+        church_key: churchKey,
         greeting: churchData.greeting || 'Welcome!',
         message: churchData.message || [],
         additional_welcome: churchData.additional_welcome || '',
@@ -209,14 +215,43 @@ async function deleteChurch(userId, churchId) {
 }
 
 /**
- * Generate unique church key
- * Format: CH_randomstring
+ * Generate unique church key from church name
+ * Format: INITIALS + unique suffix (max 12 characters)
+ * Example: "Firmus Technology Ltd" → "FTL9A3B2C"
+ * @param {string} churchName - Name of the church
  * @returns {string} Unique church key
  */
-function generateChurchKey() {
-  const random = Math.random().toString(36).substring(2, 15);
-  const timestamp = Date.now().toString(36);
-  return `CH_${random}${timestamp}`;
+async function generateChurchKey(churchName) {
+  // Extract initials from church name (first letter of each word)
+  const initials = churchName
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase())
+    .filter(char => /[A-Z]/.test(char)) // Only letters
+    .join('')
+    .substring(0, 4); // Max 4 initials
+
+  // Generate unique suffix to fill remaining characters (max 12 total)
+  const maxSuffixLength = 12 - initials.length;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  while (attempts < maxAttempts) {
+    // Generate random alphanumeric suffix
+    const suffix = Math.random().toString(36).substring(2, 2 + maxSuffixLength).toUpperCase();
+    const churchKey = initials + suffix;
+
+    // Check if this key is available
+    const isAvailable = await isChurchKeyAvailable(churchKey);
+    if (isAvailable) {
+      return churchKey;
+    }
+
+    attempts++;
+  }
+
+  // If we couldn't generate a unique key, add timestamp
+  const timestamp = Date.now().toString(36).substring(0, maxSuffixLength).toUpperCase();
+  return (initials + timestamp).substring(0, 12);
 }
 
 /**

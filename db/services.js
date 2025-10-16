@@ -130,11 +130,14 @@ async function getServicesByUser(userId) {
  */
 async function createService(churchId, serviceData) {
   try {
+    // Generate service ID if not provided
+    const serviceId = serviceData.service_id || await generateServiceId();
+
     const { data, error } = await supabaseAdmin
       .from('services')
       .insert([{
         church_id: churchId,
-        service_id: serviceData.service_id || generateServiceId(),
+        service_id: serviceId,
         name: serviceData.name || 'Main Service',
         status: 'inactive',
         active_languages: serviceData.active_languages || []
@@ -313,12 +316,50 @@ async function getActiveServices() {
 
 /**
  * Generate unique service ID
- * @returns {string} Unique service ID
+ * Sequential 6-digit numeric ID starting at 100901
+ * @returns {Promise<string>} Unique service ID (e.g., "100901", "100902", etc.)
  */
-function generateServiceId() {
-  const random = Math.random().toString(36).substring(2, 15);
-  const timestamp = Date.now().toString(36);
-  return `SVC_${random}${timestamp}`;
+async function generateServiceId() {
+  try {
+    // Query all services to find the highest numeric service_id
+    const { data, error } = await supabaseAdmin
+      .from('services')
+      .select('service_id')
+      .order('service_id', { ascending: false })
+      .limit(100); // Get top 100 to find highest numeric one
+
+    if (error) {
+      console.error('Error fetching service IDs:', error);
+      // If error, start at base number
+      return '100901';
+    }
+
+    // Find the highest numeric service ID (6 digits starting with 10)
+    let highestNumericId = 100900; // Start at 100900 so first ID will be 100901
+
+    if (data && data.length > 0) {
+      for (const service of data) {
+        const serviceId = service.service_id;
+        // Check if it's a 6-digit number
+        if (/^\d{6}$/.test(serviceId)) {
+          const numericId = parseInt(serviceId, 10);
+          if (numericId > highestNumericId) {
+            highestNumericId = numericId;
+          }
+        }
+      }
+    }
+
+    // Increment and return
+    const nextId = highestNumericId + 1;
+    console.log(`🔢 Generated service ID: ${nextId}`);
+    return nextId.toString();
+
+  } catch (error) {
+    console.error('Error in generateServiceId:', error);
+    // Fallback to base number if there's an error
+    return '100901';
+  }
 }
 
 /**
