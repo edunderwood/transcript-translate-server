@@ -13,6 +13,8 @@ import { supabaseAdmin } from '../supabase.js';
  */
 async function getChurchByUserId(userId) {
   try {
+    console.log(`🔍 DB Query: Fetching church for user_id: ${userId}`);
+
     const { data, error } = await supabaseAdmin
       .from('churches')
       .select('*')
@@ -20,6 +22,7 @@ async function getChurchByUserId(userId) {
       .single();
 
     if (error) {
+      console.error(`❌ DB Error:`, error);
       if (error.code === 'PGRST116') {
         // No rows returned
         console.log(`ℹ️  No church found for user ${userId}`);
@@ -28,6 +31,14 @@ async function getChurchByUserId(userId) {
       console.error('Error fetching church by user ID:', error);
       throw error;
     }
+
+    console.log(`✅ DB Result: Found church:`, {
+      id: data.id,
+      name: data.name,
+      church_key: data.church_key,
+      user_id: data.user_id,
+      default_service_id: data.default_service_id
+    });
 
     return data;
   } catch (error) {

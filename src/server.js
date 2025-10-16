@@ -580,9 +580,12 @@ function generateRandomServiceId() {
  */
 app.get('/api/church/profile', authenticateUser, async (req, res) => {
   try {
+    console.log(`🔍 Fetching church profile for user: ${req.userId} (${req.userEmail})`);
+
     const church = await getChurchByUserId(req.userId);
 
     if (!church) {
+      console.log(`❌ No church found for user ${req.userId}`);
       return res.status(404).json({
         success: false,
         error: 'Church profile not found',
@@ -590,15 +593,24 @@ app.get('/api/church/profile', authenticateUser, async (req, res) => {
       });
     }
 
+    console.log(`✅ Church profile found:`, {
+      id: church.id,
+      name: church.name,
+      church_key: church.church_key,
+      default_service_id: church.default_service_id
+    });
+
     res.json({
       success: true,
       data: church
     });
   } catch (error) {
     console.error('❌ Error fetching church profile:', error);
+    console.error('Error details:', error.message, error.code);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: 'Internal server error',
+      message: error.message
     });
   }
 });
