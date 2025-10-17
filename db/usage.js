@@ -85,26 +85,40 @@ export async function getOrganisationUsage(organisationId, options = {}) {
     // Calculate total characters
     const totalCharacters = data.reduce((sum, record) => sum + record.character_count, 0);
 
-    // Group by language
+    // Calculate total unique client sessions (sum of all client_count entries)
+    const totalClientSessions = data.reduce((sum, record) => sum + (record.client_count || 0), 0);
+
+    // Group by language with character count and max concurrent clients
     const byLanguage = data.reduce((acc, record) => {
       if (!acc[record.language]) {
-        acc[record.language] = 0;
+        acc[record.language] = {
+          characters: 0,
+          sessions: 0,
+          maxClients: 0
+        };
       }
-      acc[record.language] += record.character_count;
+      acc[record.language].characters += record.character_count;
+      acc[record.language].sessions += (record.client_count || 0);
+      acc[record.language].maxClients = Math.max(acc[record.language].maxClients, record.client_count || 0);
       return acc;
     }, {});
 
-    // Group by date
+    // Group by date with character count and client sessions
     const byDate = data.reduce((acc, record) => {
       if (!acc[record.date]) {
-        acc[record.date] = 0;
+        acc[record.date] = {
+          characters: 0,
+          sessions: 0
+        };
       }
-      acc[record.date] += record.character_count;
+      acc[record.date].characters += record.character_count;
+      acc[record.date].sessions += (record.client_count || 0);
       return acc;
     }, {});
 
     return {
       totalCharacters,
+      totalClientSessions,
       byLanguage,
       byDate,
       recordCount: data.length

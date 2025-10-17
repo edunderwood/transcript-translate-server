@@ -961,6 +961,7 @@
             </div>
             <div id="usage-stats" style="font-size: 14px;">
                 <p><strong>Total Characters:</strong> <span id="usage-total">-</span></p>
+                <p><strong>Client Sessions:</strong> <span id="usage-sessions">-</span></p>
                 <p><strong>Estimated Cost:</strong> <span id="usage-cost">£0.00</span></p>
                 <div id="usage-by-language" style="margin-top: 10px;">
                     <p style="font-weight: 600; margin-bottom: 5px;">By Language:</p>
@@ -1672,6 +1673,7 @@
         function displayUsageStats(data) {
             console.log('📊 displayUsageStats called with data:', data);
             console.log('   Total Characters:', data.totalCharacters);
+            console.log('   Total Client Sessions:', data.totalClientSessions);
             console.log('   Estimated Cost:', data.estimatedCost);
             console.log('   By Language:', data.byLanguage);
 
@@ -1679,6 +1681,11 @@
             const totalFormatted = data.totalCharacters.toLocaleString();
             document.getElementById('usage-total').textContent = totalFormatted;
             console.log('   Displayed total:', totalFormatted);
+
+            // Display total client sessions
+            const sessionsFormatted = (data.totalClientSessions || 0).toLocaleString();
+            document.getElementById('usage-sessions').textContent = sessionsFormatted;
+            console.log('   Displayed sessions:', sessionsFormatted);
 
             // Display estimated cost with currency symbol
             const currencySymbol = data.currencySymbol || '£';
@@ -1693,14 +1700,26 @@
                 console.log('   Languages found:', Object.keys(data.byLanguage).length);
                 // Sort languages by character count (descending)
                 const sortedLanguages = Object.entries(data.byLanguage)
-                    .sort((a, b) => b[1] - a[1]);
+                    .sort((a, b) => {
+                        const aChars = typeof b[1] === 'object' ? b[1].characters : b[1];
+                        const bChars = typeof a[1] === 'object' ? a[1].characters : a[1];
+                        return aChars - bChars;
+                    });
 
-                sortedLanguages.forEach(([lang, count]) => {
+                sortedLanguages.forEach(([lang, stats]) => {
                     const li = document.createElement('li');
                     li.style.marginBottom = '3px';
-                    li.innerHTML = `<span style="display: inline-block; width: 60px;">${lang}:</span> ${count.toLocaleString()}`;
+
+                    // Check if stats is an object (new format) or number (old format)
+                    if (typeof stats === 'object' && stats.characters !== undefined) {
+                        li.innerHTML = `<span style="display: inline-block; width: 60px;">${lang}:</span> ${stats.characters.toLocaleString()} chars, ${stats.sessions} sessions (max ${stats.maxClients} concurrent)`;
+                        console.log(`   Added language: ${lang} = ${stats.characters} chars, ${stats.sessions} sessions`);
+                    } else {
+                        // Fallback for old format
+                        li.innerHTML = `<span style="display: inline-block; width: 60px;">${lang}:</span> ${stats.toLocaleString()}`;
+                        console.log(`   Added language: ${lang} = ${stats}`);
+                    }
                     languageList.appendChild(li);
-                    console.log(`   Added language: ${lang} = ${count}`);
                 });
             } else {
                 console.log('   No language data available');
