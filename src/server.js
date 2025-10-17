@@ -678,15 +678,32 @@ app.get('/api/organisation/usage', authenticateUser, async (req, res) => {
       usage = await getRecentUsage(organisation.id, days);
     }
 
-    // Calculate estimated cost (Google Translate charges $20 per million characters)
-    const costPerMillion = 20;
-    const estimatedCost = (usage.totalCharacters / 1000000) * costPerMillion;
+    // Calculate estimated cost using organisation-specific pricing
+    // Default pricing: £0.00002 per character (£20 per million) + £0 monthly fee
+    const pricePerCharacter = parseFloat(organisation.price_per_character_gbp) || 0.00002;
+    const monthlyFee = parseFloat(organisation.monthly_fee_gbp) || 0.00;
+
+    // Calculate character cost
+    const characterCost = usage.totalCharacters * pricePerCharacter;
+
+    // Add monthly fee only for monthly/30+ day periods
+    const isMonthlyPeriod = period === 'month' || (parseInt(period) >= 30);
+    const totalCost = characterCost + (isMonthlyPeriod ? monthlyFee : 0);
 
     res.json({
       success: true,
       data: {
         ...usage,
-        estimatedCost: estimatedCost.toFixed(2),
+        estimatedCost: totalCost.toFixed(2),
+        currency: 'GBP',
+        currencySymbol: '£',
+        pricing: {
+          pricePerCharacter: pricePerCharacter,
+          pricePerMillion: (pricePerCharacter * 1000000).toFixed(2),
+          monthlyFee: monthlyFee.toFixed(2),
+          characterCost: characterCost.toFixed(2),
+          monthlyFeeApplied: isMonthlyPeriod ? monthlyFee.toFixed(2) : '0.00'
+        },
         period
       }
     });

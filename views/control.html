@@ -832,6 +832,28 @@
                         <label for="settingsWaitingMessage">Offline Message</label>
                         <input type="text" id="settingsWaitingMessage">
                     </div>
+
+                    <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+                    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 18px;">Pricing Configuration</h3>
+
+                    <div class="form-group">
+                        <label for="settingsMonthlyFee">Monthly Fixed Fee (£)</label>
+                        <input type="number" id="settingsMonthlyFee" step="0.01" min="0" placeholder="0.00">
+                        <small>Fixed monthly charge for this organisation (in GBP)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsPricePerCharacter">Price Per Character (£)</label>
+                        <input type="number" id="settingsPricePerCharacter" step="0.00000001" min="0" placeholder="0.00002">
+                        <small>Cost per translated character (Default: £0.00002 = £20 per million characters)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Price Per Million Characters</label>
+                        <input type="text" id="settingsPricePerMillion" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
+                        <small>Calculated automatically from price per character</small>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -906,7 +928,7 @@
             </div>
             <div id="usage-stats" style="font-size: 14px;">
                 <p><strong>Total Characters:</strong> <span id="usage-total">-</span></p>
-                <p><strong>Estimated Cost:</strong> $<span id="usage-cost">0.00</span></p>
+                <p><strong>Estimated Cost:</strong> <span id="usage-cost">£0.00</span></p>
                 <div id="usage-by-language" style="margin-top: 10px;">
                     <p style="font-weight: 600; margin-bottom: 5px;">By Language:</p>
                     <ul id="usage-language-list" style="list-style: none; padding-left: 0;"></ul>
@@ -1071,6 +1093,13 @@
             }
         });
 
+        // Update price per million when price per character changes
+        document.getElementById('settingsPricePerCharacter').addEventListener('input', function(e) {
+            const pricePerChar = parseFloat(e.target.value) || 0;
+            const pricePerMillion = (pricePerChar * 1000000).toFixed(2);
+            document.getElementById('settingsPricePerMillion').value = '£' + pricePerMillion;
+        });
+
         // Load current settings into modal
         async function loadSettings() {
             try {
@@ -1094,6 +1123,13 @@
 
                     document.getElementById('settingsAdditionalWelcome').value = organisation.additional_welcome || '';
                     document.getElementById('settingsWaitingMessage').value = organisation.waiting_message || '';
+
+                    // Load pricing fields
+                    const monthlyFee = parseFloat(organisation.monthly_fee_gbp) || 0.00;
+                    const pricePerChar = parseFloat(organisation.price_per_character_gbp) || 0.00002;
+                    document.getElementById('settingsMonthlyFee').value = monthlyFee.toFixed(2);
+                    document.getElementById('settingsPricePerCharacter').value = pricePerChar.toFixed(8);
+                    document.getElementById('settingsPricePerMillion').value = '£' + (pricePerChar * 1000000).toFixed(2);
 
                     // Populate language checkboxes
                     populateLanguageCheckboxes(organisation.translation_languages || []);
@@ -1192,7 +1228,9 @@
                     greeting: document.getElementById('settingsGreeting').value,
                     message: welcomeMessages,
                     additional_welcome: document.getElementById('settingsAdditionalWelcome').value,
-                    waiting_message: document.getElementById('settingsWaitingMessage').value
+                    waiting_message: document.getElementById('settingsWaitingMessage').value,
+                    monthly_fee_gbp: parseFloat(document.getElementById('settingsMonthlyFee').value) || 0.00,
+                    price_per_character_gbp: parseFloat(document.getElementById('settingsPricePerCharacter').value) || 0.00002
                 };
 
                 const accessToken = localStorage.getItem('access_token');
@@ -1514,9 +1552,10 @@
             document.getElementById('usage-total').textContent = totalFormatted;
             console.log('   Displayed total:', totalFormatted);
 
-            // Display estimated cost
-            document.getElementById('usage-cost').textContent = data.estimatedCost;
-            console.log('   Displayed cost:', data.estimatedCost);
+            // Display estimated cost with currency symbol
+            const currencySymbol = data.currencySymbol || '£';
+            document.getElementById('usage-cost').textContent = currencySymbol + data.estimatedCost;
+            console.log('   Displayed cost:', currencySymbol + data.estimatedCost);
 
             // Display by language
             const languageList = document.getElementById('usage-language-list');
