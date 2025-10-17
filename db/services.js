@@ -9,7 +9,7 @@ import { supabaseAdmin } from '../supabase.js';
 /**
  * Get service by service_id (string identifier)
  * @param {string} serviceId - Service ID string
- * @returns {Object|null} Service data with church info
+ * @returns {Object|null} Service data with organisation info
  */
 async function getServiceByServiceId(serviceId) {
   try {
@@ -17,7 +17,7 @@ async function getServiceByServiceId(serviceId) {
       .from('services')
       .select(`
         *,
-        churches (*)
+        organisations (*)
       `)
       .eq('service_id', serviceId)
       .single();
@@ -68,29 +68,32 @@ async function getServiceById(id) {
 }
 
 /**
- * Get all services for a church
- * @param {string} churchId - Church UUID
+ * Get all services for an organisation
+ * @param {string} organisationId - Organisation UUID
  * @returns {Array} Array of services
  */
-async function getServicesByChurch(churchId) {
+async function getServicesByOrganisation(organisationId) {
   try {
     const { data, error } = await supabaseAdmin
       .from('services')
       .select('*')
-      .eq('church_id', churchId)
+      .eq('organisation_id', organisationId)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching services by church:', error);
+      console.error('Error fetching services by organisation:', error);
       throw error;
     }
 
     return data || [];
   } catch (error) {
-    console.error('Error in getServicesByChurch:', error);
+    console.error('Error in getServicesByOrganisation:', error);
     throw error;
   }
 }
+
+// Deprecated: Use getServicesByOrganisation instead
+const getServicesByChurch = getServicesByOrganisation;
 
 /**
  * Get all services for a user
@@ -103,11 +106,11 @@ async function getServicesByUser(userId) {
       .from('services')
       .select(`
         *,
-        churches!inner (
+        organisations!inner (
           user_id
         )
       `)
-      .eq('churches.user_id', userId)
+      .eq('organisations.user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -124,11 +127,11 @@ async function getServicesByUser(userId) {
 
 /**
  * Create new service
- * @param {string} churchId - Church UUID
+ * @param {string} organisationId - Organisation UUID
  * @param {Object} serviceData - Service information
  * @returns {Object} Created service data
  */
-async function createService(churchId, serviceData) {
+async function createService(organisationId, serviceData) {
   try {
     // Generate service ID if not provided
     const serviceId = serviceData.service_id || await generateServiceId();
@@ -136,7 +139,7 @@ async function createService(churchId, serviceData) {
     const { data, error } = await supabaseAdmin
       .from('services')
       .insert([{
-        church_id: churchId,
+        organisation_id: organisationId,
         service_id: serviceId,
         name: serviceData.name || 'Main Service',
         status: 'inactive',
@@ -211,7 +214,7 @@ async function updateService(serviceId, updates) {
     const allowedUpdates = { ...updates };
     delete allowedUpdates.id;
     delete allowedUpdates.service_id;
-    delete allowedUpdates.church_id;
+    delete allowedUpdates.organisation_id;
     delete allowedUpdates.created_at;
 
     const { data, error } = await supabaseAdmin
@@ -297,7 +300,7 @@ async function getActiveServices() {
       .from('services')
       .select(`
         *,
-        churches (*)
+        organisations (*)
       `)
       .eq('status', 'active')
       .order('started_at', { ascending: false });
@@ -434,7 +437,8 @@ async function getServiceStats(serviceId) {
 export {
   getServiceByServiceId,
   getServiceById,
-  getServicesByChurch,
+  getServicesByOrganisation,
+  getServicesByChurch, // Deprecated: Use getServicesByOrganisation
   getServicesByUser,
   createService,
   updateServiceStatus,
