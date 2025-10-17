@@ -1735,6 +1735,48 @@
             fetchUsageStats(e.target.value);
         });
 
+        // Check if user has organisation on page load
+        async function checkOrganisationExists() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+
+                if (!accessToken) {
+                    console.log('⚠️  No access token found, redirecting to login');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const response = await fetch('/api/organisation/profile', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (!response.ok) {
+                    console.log('❌ Failed to fetch organisation profile');
+                    if (response.status === 404) {
+                        console.log('📍 No organisation found, redirecting to setup');
+                        window.location.href = '/complete-setup-org';
+                        return;
+                    }
+                    if (response.status === 401) {
+                        console.log('🔐 Unauthorized, redirecting to login');
+                        window.location.href = '/login';
+                        return;
+                    }
+                }
+
+                const result = await response.json();
+                if (!result.success || !result.data) {
+                    console.log('📍 No organisation data, redirecting to setup');
+                    window.location.href = '/complete-setup-org';
+                }
+            } catch (error) {
+                console.error('❌ Error checking organisation:', error);
+            }
+        }
+
+        // Check organisation exists before loading page data
+        checkOrganisationExists();
+
         // Fetch usage stats on page load (after a short delay to ensure auth is loaded)
         setTimeout(() => {
             fetchUsageStats('month');

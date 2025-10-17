@@ -285,6 +285,22 @@ app.post('/auth/login', async (req, res) => {
 
     console.log(`✅ User logged in: ${data.user.email}`);
 
+    // Check if user has an organisation
+    const { data: organisations, error: orgError } = await supabaseAdmin
+      .from('organisations')
+      .select('id')
+      .eq('user_id', data.user.id);
+
+    if (orgError) {
+      console.error('❌ Error checking organisation:', orgError);
+    }
+
+    // Determine redirect URL based on organisation status
+    const hasOrganisation = organisations && organisations.length > 0;
+    const redirectUrl = hasOrganisation ? '/control' : '/complete-setup-org';
+
+    console.log(`📍 Redirecting to: ${redirectUrl} (has organisation: ${hasOrganisation})`);
+
     // Return success with session data
     res.json({
       success: true,
@@ -296,7 +312,7 @@ app.post('/auth/login', async (req, res) => {
         access_token: data.session.access_token,
         refresh_token: data.session.refresh_token
       },
-      redirectUrl: '/control'
+      redirectUrl: redirectUrl
     });
 
   } catch (error) {
