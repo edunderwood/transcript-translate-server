@@ -556,7 +556,7 @@
 
                 // Check if organization already set up
                 const { data: organisations, error: organisationError } = await supabase
-                    .from('churches')
+                    .from('organisations')
                     .select('*')
                     .eq('user_id', session.user.id);
 
