@@ -647,7 +647,7 @@
 
             // Disable button
             setupBtn.disabled = true;
-            setupBtn.textContent = 'Setting up your organization...';
+            setupBtn.textContent = 'Setting up your organisation...';
             form.classList.add('loading');
 
             try {
@@ -659,8 +659,8 @@
                     throw new Error('No active session. Please log in again.');
                 }
 
-                // Call server API to create organization
-                const response = await fetch('/api/register/organization', {
+                // Call server API to create organisation
+                const response = await fetch('/api/register/organisation', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

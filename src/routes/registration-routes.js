@@ -166,12 +166,12 @@ router.get('/complete-setup-client', (req, res) => {
 
 /**
  * Create organisation after email verification
- * POST /api/register/organization
+ * POST /api/register/organisation
  *
  * This endpoint creates the organisation record and default service
  * Requires verified email
  */
-router.post('/api/register/organization', requireVerifiedEmail, async (req, res) => {
+router.post('/api/register/organisation', requireVerifiedEmail, async (req, res) => {
     try {
         const {
             organisationName,
