@@ -105,6 +105,11 @@ export const registerForServiceTranscripts = (data) => {
 
         // Get service data once for usage tracking (async, non-blocking)
         getServiceByServiceId(serviceCode).then(serviceData => {
+            console.log(`📊 Service data for ${serviceCode}:`, serviceData ? 'Found' : 'Not found');
+            if (serviceData) {
+                console.log(`   Church ID: ${serviceData.churches?.id || 'Missing'}`);
+            }
+
             // Process each language
             for (const lang of languagesForChannel) {
                 // Count characters for this translation
@@ -113,6 +118,8 @@ export const registerForServiceTranscripts = (data) => {
                 // Get client count for this language
                 const room = `${serviceCode}:${lang}`;
                 const clientCount = io.sockets.adapter.rooms.get(room)?.size || 0;
+
+                console.log(`🌐 Processing translation: ${serviceCode}:${lang}, chars: ${charCount}, clients: ${clientCount}`);
 
                 // Translate and distribute
                 (async () => {
@@ -129,15 +136,24 @@ export const registerForServiceTranscripts = (data) => {
 
                         // Record usage asynchronously (non-blocking)
                         if (serviceData && serviceData.churches && charCount > 0) {
+                            console.log(`💾 Recording usage: church=${serviceData.churches.id}, service=${serviceCode}, lang=${lang}, chars=${charCount}`);
                             recordTranslationUsage({
                                 church_id: serviceData.churches.id,
                                 service_id: serviceCode,
                                 language: lang,
                                 character_count: charCount,
                                 client_count: clientCount
+                            }).then(result => {
+                                if (result) {
+                                    console.log(`✅ Usage recorded successfully for ${serviceCode}:${lang}`);
+                                } else {
+                                    console.warn(`⚠️  Usage recording returned null for ${serviceCode}:${lang}`);
+                                }
                             }).catch(err => {
-                                console.error(`Error recording usage for ${serviceCode}:${lang}:`, err);
+                                console.error(`❌ Error recording usage for ${serviceCode}:${lang}:`, err);
                             });
+                        } else {
+                            console.log(`⏭️  Skipping usage recording: serviceData=${!!serviceData}, churches=${!!serviceData?.churches}, charCount=${charCount}`);
                         }
                     } catch (error) {
                         console.error(`Error translating to ${lang}:`, error);
