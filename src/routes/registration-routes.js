@@ -13,6 +13,7 @@ import { supabase, supabaseAdmin } from '../../supabase.js';
 import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { readFileSync } from 'fs';
 import { generateOrganisationKey } from '../../db/organisations.js';
 import { generateServiceId } from '../../db/services.js';
 
@@ -20,6 +21,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const router = express.Router();
+
+/**
+ * Get default logo as base64 string
+ * Reads from public/img/logo.png if no logo is uploaded
+ */
+function getDefaultLogoBase64() {
+    try {
+        const logoPath = path.join(__dirname, '..', '..', 'public', 'img', 'logo.png');
+        const logoBuffer = readFileSync(logoPath);
+        const base64Logo = logoBuffer.toString('base64');
+        return `data:image/png;base64,${base64Logo}`;
+    } catch (error) {
+        console.warn('⚠️  Could not read default logo:', error.message);
+        return ''; // Return empty string if default logo can't be read
+    }
+}
 
 /**
  * Middleware to verify JWT token and check email verification
@@ -235,6 +252,12 @@ router.post('/api/register/organisation', requireVerifiedEmail, async (req, res)
         const organisationKey = await generateOrganisationKey(organisationName);
         const defaultServiceId = await generateServiceId();
 
+        // Use default logo if none provided
+        const finalLogo = logoBase64 || getDefaultLogoBase64();
+        if (!logoBase64) {
+            console.log('📷 No logo uploaded, using default logo');
+        }
+
         // Prepare organisation record data
         const organisationData = {
             user_id: userId,
@@ -244,7 +267,7 @@ router.post('/api/register/organisation', requireVerifiedEmail, async (req, res)
             message: message || [],
             additional_welcome: additionalWelcome || '',
             waiting_message: waitingMessage || 'Service is currently offline',
-            logo_base64: logoBase64 || '',
+            logo_base64: finalLogo,
             host_language: hostLanguage,
             translation_languages: translationLanguages,
             default_service_id: defaultServiceId,
