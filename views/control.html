@@ -1463,46 +1463,70 @@
         // ============================================================
         async function fetchUsageStats(period = 'month') {
             try {
+                console.log('📊 Fetching usage stats for period:', period);
                 const accessToken = localStorage.getItem('access_token');
                 if (!accessToken) {
-                    console.log('No access token available for usage stats');
+                    console.warn('⚠️  No access token available for usage stats');
+                    document.getElementById('usage-total').textContent = 'Not logged in';
                     return;
                 }
 
-                const response = await fetch(`${serverName}/api/church/usage?period=${period}`, {
+                const url = `${serverName}/api/church/usage?period=${period}`;
+                console.log('🔗 Fetching from:', url);
+
+                const response = await fetch(url, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
                     }
                 });
 
+                console.log('📡 Response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error('Failed to fetch usage stats');
+                    const errorText = await response.text();
+                    console.error('❌ API Error:', response.status, errorText);
+                    throw new Error(`Failed to fetch usage stats: ${response.status}`);
                 }
 
                 const result = await response.json();
+                console.log('✅ Usage data received:', result);
+
                 if (result.success && result.data) {
+                    console.log('📈 Displaying usage stats');
                     displayUsageStats(result.data);
+                } else {
+                    console.warn('⚠️  No usage data in response:', result);
+                    document.getElementById('usage-total').textContent = '0';
+                    document.getElementById('usage-cost').textContent = '0.00';
                 }
             } catch (error) {
-                console.error('Error fetching usage stats:', error);
+                console.error('❌ Error fetching usage stats:', error);
                 document.getElementById('usage-total').textContent = 'Error loading';
                 document.getElementById('usage-cost').textContent = '0.00';
             }
         }
 
         function displayUsageStats(data) {
+            console.log('📊 displayUsageStats called with data:', data);
+            console.log('   Total Characters:', data.totalCharacters);
+            console.log('   Estimated Cost:', data.estimatedCost);
+            console.log('   By Language:', data.byLanguage);
+
             // Display total characters with formatting
             const totalFormatted = data.totalCharacters.toLocaleString();
             document.getElementById('usage-total').textContent = totalFormatted;
+            console.log('   Displayed total:', totalFormatted);
 
             // Display estimated cost
             document.getElementById('usage-cost').textContent = data.estimatedCost;
+            console.log('   Displayed cost:', data.estimatedCost);
 
             // Display by language
             const languageList = document.getElementById('usage-language-list');
             languageList.innerHTML = '';
 
             if (data.byLanguage && Object.keys(data.byLanguage).length > 0) {
+                console.log('   Languages found:', Object.keys(data.byLanguage).length);
                 // Sort languages by character count (descending)
                 const sortedLanguages = Object.entries(data.byLanguage)
                     .sort((a, b) => b[1] - a[1]);
@@ -1512,8 +1536,10 @@
                     li.style.marginBottom = '3px';
                     li.innerHTML = `<span style="display: inline-block; width: 60px;">${lang}:</span> ${count.toLocaleString()}`;
                     languageList.appendChild(li);
+                    console.log(`   Added language: ${lang} = ${count}`);
                 });
             } else {
+                console.log('   No language data available');
                 const li = document.createElement('li');
                 li.textContent = 'No usage data yet';
                 li.style.color = '#666';
