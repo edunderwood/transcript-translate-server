@@ -1428,7 +1428,7 @@ server.listen(PORT, () => {
   console.log('   GET  /control              → Control center');
   console.log('   POST /auth/login           → Authentication');
   console.log('   GET  /health               → Health check');
-  console.log('   GET  /organisation/info          → Church config (public API)');
+  console.log('   GET  /organisation/info          → Organisation config (public API)');
   console.log('   GET  /organisation/configuration → Control panel config');
   console.log('   GET  /api/organisation/profile   → User profile (auth)');
   console.log('   GET  /api/services         → User services (auth)');
