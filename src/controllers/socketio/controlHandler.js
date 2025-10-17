@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { roomEmitter, transcriptAvailServiceSub } from "../../globals.js";
 import { registerForServiceTranscripts } from "../../translate.js";
-import { getActiveLanguages } from '../../services/church.js';
+import { getActiveLanguages } from '../../services/organisation.js';
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../../repositories/index.js';
 
 // Environment variables

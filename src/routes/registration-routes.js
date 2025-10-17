@@ -13,7 +13,7 @@ import { supabase, supabaseAdmin } from '../../supabase.js';
 import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { generateChurchKey } from '../../db/churches.js';
+import { generateOrganisationKey } from '../../db/organisations.js';
 import { generateServiceId } from '../../db/services.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -149,16 +149,16 @@ router.get('/complete-setup', (req, res) => {
 });
 
 /**
- * Create organization/church after email verification
+ * Create organization after email verification
  * POST /api/register/organization
- * 
- * This endpoint creates the church record and default service
+ *
+ * This endpoint creates the organisation record and default service
  * Requires verified email
  */
 router.post('/api/register/organization', requireVerifiedEmail, async (req, res) => {
     try {
         const {
-            churchName,
+            organisationName,
             contactName,
             contactPhone,
             hostLanguage,
@@ -173,7 +173,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         const userId = req.user.id;
 
         // Validate required fields
-        if (!churchName || !contactName || !hostLanguage) {
+        if (!organisationName || !contactName || !hostLanguage) {
             return res.status(400).json({
                 success: false,
                 message: 'Missing required fields'
@@ -187,21 +187,21 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
             });
         }
 
-        // Check if user already has a church
-        const { data: existingChurches, error: checkError } = await supabaseAdmin
+        // Check if user already has an organisation
+        const { data: existingOrganisations, error: checkError } = await supabaseAdmin
             .from('churches')
             .select('id')
             .eq('user_id', userId);
 
         if (checkError) {
-            console.error('Error checking existing church:', checkError);
+            console.error('Error checking existing organisation:', checkError);
             return res.status(500).json({
                 success: false,
                 message: 'Error checking existing organization'
             });
         }
 
-        if (existingChurches && existingChurches.length > 0) {
+        if (existingOrganisations && existingOrganisations.length > 0) {
             return res.status(400).json({
                 success: false,
                 message: 'Organization already exists for this user'
@@ -209,14 +209,14 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         }
 
         // Generate unique keys
-        const churchKey = await generateChurchKey(churchName);
+        const organisationKey = await generateOrganisationKey(organisationName);
         const defaultServiceId = await generateServiceId();
 
-        // Prepare church record data
-        const churchData = {
+        // Prepare organisation record data
+        const organisationData = {
             user_id: userId,
-            name: churchName,
-            church_key: churchKey,
+            name: organisationName,
+            church_key: organisationKey,
             greeting: greeting || 'Welcome!',
             message: message || [],
             additional_welcome: additionalWelcome || '',
@@ -229,27 +229,27 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
             contact_phone: contactPhone || ''
         };
 
-        // Create church record
-        const { data: churchResult, error: churchError } = await supabaseAdmin
+        // Create organisation record
+        const { data: organisationResult, error: organisationError } = await supabaseAdmin
             .from('churches')
-            .insert([churchData])
+            .insert([organisationData])
             .select()
             .single();
 
-        if (churchError) {
-            console.error('Church creation error:', churchError);
+        if (organisationError) {
+            console.error('Organisation creation error:', organisationError);
             return res.status(500).json({
                 success: false,
                 message: 'Failed to create organization',
-                error: churchError.message
+                error: organisationError.message
             });
         }
 
-        console.log(`✅ Created church: ${churchResult.id} for user ${userId}`);
+        console.log(`✅ Created organisation: ${organisationResult.id} for user ${userId}`);
 
         // Create default service
         const serviceData = {
-            church_id: churchResult.id,
+            church_id: organisationResult.id,
             service_id: defaultServiceId,
             name: 'Main Service',
             status: 'inactive',
@@ -271,10 +271,10 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         res.json({
             success: true,
             message: 'Organization setup completed successfully',
-            church: {
-                id: churchResult.id,
-                name: churchResult.name,
-                church_key: churchResult.church_key,
+            organisation: {
+                id: organisationResult.id,
+                name: organisationResult.name,
+                organisation_key: organisationResult.church_key,
                 default_service_id: defaultServiceId
             }
         });
@@ -292,15 +292,15 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
 /**
  * Check if organization setup is complete
  * GET /api/setup-status
- * 
+ *
  * Returns whether the user has completed organization setup
  */
 router.get('/api/setup-status', requireVerifiedEmail, async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Check if church exists for this user
-        const { data: churches, error } = await supabaseAdmin
+        // Check if organisation exists for this user
+        const { data: organisations, error } = await supabaseAdmin
             .from('churches')
             .select('id, name, church_key')
             .eq('user_id', userId);
@@ -313,12 +313,12 @@ router.get('/api/setup-status', requireVerifiedEmail, async (req, res) => {
             });
         }
 
-        const isComplete = churches && churches.length > 0;
+        const isComplete = organisations && organisations.length > 0;
 
         res.json({
             success: true,
             setupComplete: isComplete,
-            church: isComplete ? churches[0] : null
+            organisation: isComplete ? organisations[0] : null
         });
 
     } catch (error) {

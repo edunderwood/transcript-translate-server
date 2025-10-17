@@ -402,9 +402,9 @@
                 <h2>Organization Details</h2>
 
                 <div class="form-group">
-                    <label for="churchName">Organization/Church Name *</label>
-                    <input type="text" id="churchName" name="churchName"
-                        placeholder="First Community Church" required>
+                    <label for="organisationName">Organization Name *</label>
+                    <input type="text" id="organisationName" name="organisationName"
+                        placeholder="First Community Organization" required>
                 </div>
 
                 <div class="form-group">
@@ -711,12 +711,12 @@
                 }
 
                 // Check if organization already set up
-                const { data: churches, error: churchError } = await supabase
+                const { data: organisations, error: organisationError } = await supabase
                     .from('churches')
                     .select('*')
                     .eq('user_id', session.user.id);
 
-                if (!churchError && churches && churches.length > 0) {
+                if (!organisationError && organisations && organisations.length > 0) {
                     // Organization already exists, redirect to control panel
                     window.location.href = '/control';
                     return;
@@ -763,7 +763,7 @@
 
             // Get form data
             const formData = new FormData(form);
-            const churchName = formData.get('churchName').trim();
+            const organisationName = formData.get('organisationName').trim();
             const contactName = formData.get('contactName').trim();
             const contactPhone = formData.get('contactPhone').trim();
             const hostLanguage = formData.get('hostLanguage');
@@ -786,7 +786,7 @@
             }));
 
             // Validate
-            if (!churchName || !contactName) {
+            if (!organisationName || !contactName) {
                 showError('Please fill in all required fields');
                 return;
             }
@@ -823,7 +823,7 @@
                         'Authorization': `Bearer ${session.access_token}`
                     },
                     body: JSON.stringify({
-                        churchName,
+                        organisationName,
                         contactName,
                         contactPhone,
                         hostLanguage,
