@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/css/login.css">
+    <title>Client Setup - Open Word</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px 20px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .checkbox-label:hover {
+            background-color: #f8f9fa;
+            border-color: #007bff;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .checkbox-label span {
+            flex: 1;
+        }
+
+        .logo-preview {
+            margin-top: 15px;
+            padding: 15px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        .logo-preview img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #28a745;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .step.active .step-number {
+            background-color: #007bff;
+        }
+
+        .step.pending .step-number {
+            background-color: #ccc;
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .step-divider {
+            width: 40px;
+            height: 2px;
+            background-color: #ccc;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #007bff;
+            transition: width 0.3s ease;
+        }
+
+        /* Client Preview Screenshot */
+        .preview-section {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .preview-section h3 {
+            margin-top: 0;
+            color: #495057;
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .phone-screenshot {
+            max-width: 360px;
+            width: 100%;
+            border: 8px solid #333;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: block;
+        }
+
+        .screenshot-caption {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+            max-width: 500px;
+        }
+
+        @media (max-width: 768px) {
+            .phone-screenshot {
+                max-width: 100%;
+                border-width: 6px;
+                border-radius: 20px;
+            }
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #007bff;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body style="margin: 20px;">
+    <div class="form-container" style="max-width: 600px; margin: 0 auto;">
+        <img src="/img/logo.png" alt="Logo" class="logo">
+        <h1>Open Word</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 10px;">Step 2: Client Appearance</p>
+
+        <a href="/complete-setup-org" class="back-link">← Back to Organization Details</a>
+
+        <!-- Client Screen Preview -->
+        <div class="preview-section">
+            <h3>📱 Preview: How Your Settings Appear on Participant Devices</h3>
+            <div class="preview-container">
+                <img src="/images/nefc-front.png" alt="Sample client screen showing organisation name, logo, welcome message, and offline status" class="phone-screenshot">
+                <p class="screenshot-caption">
+                    Example: This shows how your organisation name, logo, greeting message, welcome text, and translation languages will appear on participants' mobile devices
+                </p>
+            </div>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step">
+                <div class="step-number">✓</div>
+                <span class="step-label">Account</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step">
+                <div class="step-number">✓</div>
+                <span class="step-label">Verified</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step">
+                <div class="step-number">✓</div>
+                <span class="step-label">Organization</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step active">
+                <div class="step-number">4</div>
+                <span class="step-label">Client Setup</span>
+            </div>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <form id="client-form" class="validated-form" novalidate>
+            <!-- Language Configuration -->
+            <div class="form-section">
+                <h2>Language Configuration</h2>
+
+                <div class="form-group">
+                    <label for="hostLanguage">Host Language *</label>
+                    <select id="hostLanguage" name="hostLanguage" required>
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                        <option value="es-ES">Spanish (Spain)</option>
+                        <option value="es-MX">Spanish (Mexico)</option>
+                        <option value="fr-FR">French</option>
+                        <option value="de-DE">German</option>
+                        <option value="it-IT">Italian</option>
+                        <option value="pt-BR">Portuguese (Brazil)</option>
+                        <option value="pt-PT">Portuguese (Portugal)</option>
+                    </select>
+                    <small>The primary language spoken during your services</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Translation Languages * (Select 1-5 languages)</label>
+                    <div class="checkbox-grid" id="language-checkboxes">
+                        <label class="checkbox-label">
+                            <span>Arabic</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Arabic" data-locale="ar">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Bengali</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Bengali" data-locale="bn-IN">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Chinese (Simplified)</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Chinese (Simplified)" data-locale="zh-CN">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Chinese (Traditional)</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Chinese (Traditional)" data-locale="zh-TW">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Czech</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Czech" data-locale="cs-CZ">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Danish</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Danish" data-locale="da-DK">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Dutch</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Dutch" data-locale="nl-NL">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>English</span>
+                            <input type="checkbox" name="translationLanguages" data-name="English" data-locale="en-GB">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Filipino</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Filipino" data-locale="fil-PH">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Finnish</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Finnish" data-locale="fi-FI">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>French</span>
+                            <input type="checkbox" name="translationLanguages" data-name="French" data-locale="fr-FR">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>German</span>
+                            <input type="checkbox" name="translationLanguages" data-name="German" data-locale="de-DE">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Greek</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Greek" data-locale="el-GR">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Hindi</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Hindi" data-locale="hi-IN">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Hungarian</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Hungarian" data-locale="hu-HU">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Indonesian</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Indonesian" data-locale="id-ID">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Italian</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Italian" data-locale="it-IT">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Japanese</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Japanese" data-locale="ja-JP">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Korean</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Korean" data-locale="ko-KR">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Norwegian</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Norwegian" data-locale="no-NO">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Polish</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Polish" data-locale="pl-PL">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Portuguese</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Portuguese" data-locale="pt-BR">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Romanian</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Romanian" data-locale="ro-RO">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Russian</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Russian" data-locale="ru-RU">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Spanish</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Spanish" data-locale="es-ES">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Swedish</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Swedish" data-locale="sv-SE">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Tamil</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Tamil" data-locale="ta-IN">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Thai</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Thai" data-locale="th-TH">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Turkish</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Turkish" data-locale="tr-TR">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Ukrainian</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Ukrainian" data-locale="uk-UA">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Urdu</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Urdu" data-locale="ur-PK">
+                        </label>
+                        <label class="checkbox-label">
+                            <span>Vietnamese</span>
+                            <input type="checkbox" name="translationLanguages" data-name="Vietnamese" data-locale="vi-VN">
+                        </label>
+                    </div>
+                    <small id="language-counter">Select 1-5 languages you want to offer translation for (0 selected)</small>
+                </div>
+            </div>
+
+            <!-- Welcome Messages -->
+            <div class="form-section">
+                <h2>Welcome Messages (Optional)</h2>
+
+                <div class="form-group">
+                    <label for="greeting">Greeting Text</label>
+                    <input type="text" id="greeting" name="greeting" value="Welcome!"
+                        placeholder="Welcome to our service!">
+                    <small>Shown at the top of the participant app</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="welcomeMessages">Welcome Messages</label>
+                    <textarea id="welcomeMessages" name="welcomeMessages"
+                        placeholder="Enter each message on a new line:&#10;Thank you for joining us today&#10;Please select your language below&#10;Translation will begin shortly" rows="5"></textarea>
+                    <small>Enter each message on a separate line. These will appear below the greeting.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="additionalWelcome">Additional Welcome Message</label>
+                    <textarea id="additionalWelcome" name="additionalWelcome"
+                        placeholder="Thank you for joining us today..." rows="3"></textarea>
+                    <small>Additional information for participants</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="waitingMessage">Offline Message</label>
+                    <input type="text" id="waitingMessage" name="waitingMessage"
+                        value="Translation service is currently offline"
+                        placeholder="Service is currently offline">
+                    <small>Shown when translation service is not active</small>
+                </div>
+            </div>
+
+            <!-- Logo Upload -->
+            <div class="form-section">
+                <h2>Organization Logo (Optional)</h2>
+
+                <div class="form-group">
+                    <label for="logo">Upload Logo</label>
+                    <input type="file" id="logo" accept="image/*">
+                    <small>Maximum size: 2MB. Recommended: 200x200px square image</small>
+
+                    <div id="logo-preview" class="logo-preview">
+                        <img id="logo-preview-img" src="" alt="Logo preview">
+                        <p>Logo preview</p>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="setup-btn" class="btn" style="width: 100%;">
+                Complete Setup
+            </button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+            Final step - After setup, you'll be redirected to login
+        </p>
+    </div>
+
+    <!-- Load Supabase configuration from server -->
+    <script src="/register-config.js"></script>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const supabaseUrl = window.SUPABASE_URL;
+        const supabaseKey = window.SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseKey) {
+            console.error('Supabase configuration missing');
+            showError('Configuration error. Please contact administrator.');
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const form = document.getElementById('client-form');
+        const errorDiv = document.getElementById('error-message');
+        const setupBtn = document.getElementById('setup-btn');
+        const logoInput = document.getElementById('logo');
+        const logoPreview = document.getElementById('logo-preview');
+        const logoPreviewImg = document.getElementById('logo-preview-img');
+        const languageCheckboxes = document.querySelectorAll('input[name="translationLanguages"]');
+        const languageCounter = document.getElementById('language-counter');
+        const MAX_LANGUAGES = 5;
+
+        let logoBase64 = '';
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function hideError() {
+            errorDiv.style.display = 'none';
+        }
+
+        // Language selection with max 5 limit
+        languageCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const checkedCount = document.querySelectorAll('input[name="translationLanguages"]:checked').length;
+
+                // Update counter
+                languageCounter.textContent = `Select 1-5 languages you want to offer translation for (${checkedCount} selected)`;
+
+                // Update counter color
+                if (checkedCount === 0) {
+                    languageCounter.style.color = '#dc3545'; // red
+                } else if (checkedCount >= MAX_LANGUAGES) {
+                    languageCounter.style.color = '#28a745'; // green
+                } else {
+                    languageCounter.style.color = '#666'; // gray
+                }
+
+                // Disable unchecked boxes if limit reached
+                if (checkedCount >= MAX_LANGUAGES) {
+                    languageCheckboxes.forEach(cb => {
+                        if (!cb.checked) {
+                            cb.disabled = true;
+                            cb.parentElement.style.opacity = '0.5';
+                        }
+                    });
+                } else {
+                    languageCheckboxes.forEach(cb => {
+                        cb.disabled = false;
+                        cb.parentElement.style.opacity = '1';
+                    });
+                }
+            });
+        });
+
+        // Handle logo upload
+        logoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate
+            if (!file.type.startsWith('image/')) {
+                showError('Please upload an image file');
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                showError('Image must be less than 2MB');
+                return;
+            }
+
+            // Convert to base64
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                logoBase64 = reader.result;
+                logoPreviewImg.src = logoBase64;
+                logoPreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Check authentication and load org data
+        async function checkAuthAndLoadData() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error || !session) {
+                console.error('Not authenticated:', error);
+                showError('Please log in to continue setup');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return null;
+            }
+
+            // Check if email is verified
+            if (!session.user.email_confirmed_at) {
+                showError('Please verify your email before continuing');
+                setTimeout(() => {
+                    window.location.href = '/verify-email';
+                }, 2000);
+                return null;
+            }
+
+            // Check for organization data in localStorage
+            const orgData = localStorage.getItem('orgSetupData');
+            if (!orgData) {
+                showError('Organization details missing. Redirecting to step 1...');
+                setTimeout(() => {
+                    window.location.href = '/complete-setup-org';
+                }, 2000);
+                return null;
+            }
+
+            return { session, orgData: JSON.parse(orgData) };
+        }
+
+        // Initialize
+        (async () => {
+            const result = await checkAuthAndLoadData();
+            if (!result) return;
+        })();
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            // Get form data
+            const formData = new FormData(form);
+            const hostLanguage = formData.get('hostLanguage');
+            const greeting = formData.get('greeting').trim() || 'Welcome!';
+            const additionalWelcome = formData.get('additionalWelcome').trim();
+            const waitingMessage = formData.get('waitingMessage').trim() || 'Service is currently offline';
+
+            // Convert welcome messages to JSON array (one message per line)
+            const welcomeMessagesText = formData.get('welcomeMessages').trim();
+            const welcomeMessages = welcomeMessagesText
+                ? welcomeMessagesText.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+                : [];
+
+            // Get selected translation languages
+            const translationLanguages = Array.from(
+                document.querySelectorAll('input[name="translationLanguages"]:checked')
+            ).map(cb => ({
+                name: cb.dataset.name,
+                locale: cb.dataset.locale
+            }));
+
+            // Validate
+            if (translationLanguages.length === 0) {
+                showError('Please select at least one translation language');
+                return;
+            }
+
+            if (translationLanguages.length > MAX_LANGUAGES) {
+                showError(`Please select no more than ${MAX_LANGUAGES} translation languages`);
+                return;
+            }
+
+            // Get data from previous step
+            const result = await checkAuthAndLoadData();
+            if (!result) return;
+
+            const { session, orgData } = result;
+
+            // Disable button
+            setupBtn.disabled = true;
+            setupBtn.textContent = 'Setting up your organization...';
+            form.classList.add('loading');
+
+            try {
+                // Call server API to create organization
+                const response = await fetch('/api/register/organization', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify({
+                        // Organization details from step 1
+                        organisationName: orgData.organisationName,
+                        contactName: orgData.contactName,
+                        contactPhone: orgData.contactPhone,
+                        // Client appearance from step 2
+                        hostLanguage,
+                        translationLanguages,
+                        greeting,
+                        message: welcomeMessages,
+                        additionalWelcome,
+                        waitingMessage,
+                        logoBase64
+                    })
+                });
+
+                const apiResult = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(apiResult.message || 'Failed to create organization');
+                }
+
+                // Success! Clear localStorage and logout
+                localStorage.removeItem('orgSetupData');
+                await supabase.auth.signOut();
+                alert('Organization setup completed successfully! Please login to access the control panel.');
+                window.location.href = '/login';
+
+            } catch (error) {
+                console.error('Setup error:', error);
+                showError(error.message || 'An error occurred during setup. Please try again.');
+                setupBtn.disabled = false;
+                setupBtn.textContent = 'Complete Setup';
+                form.classList.remove('loading');
+            }
+        });
+    </script>
+</body>
+
+</html>

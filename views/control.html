@@ -759,8 +759,12 @@
         </button>
         <div class="dropdown-divider"></div>
         <button id="settingsMenuItem">
-            <span>⚙️</span>
+            <span>🏢</span>
             <span>Organisation Settings</span>
+        </button>
+        <button id="clientSettingsMenuItem">
+            <span>📱</span>
+            <span>Client Settings</span>
         </button>
         <div class="dropdown-divider"></div>
         <button id="logoutMenuItem">
@@ -769,7 +773,7 @@
         </button>
     </div>
 
-    <!-- Settings Modal -->
+    <!-- Organisation Settings Modal -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -778,6 +782,8 @@
             </div>
             <div class="modal-body">
                 <form id="settingsForm">
+                    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Organization Details</h3>
+
                     <div class="form-group">
                         <label for="settingsOrganisationName">Organisation Name</label>
                         <input type="text" id="settingsOrganisationName" required>
@@ -793,49 +799,9 @@
                         <input type="tel" id="settingsContactPhone">
                     </div>
 
-                    <div class="form-group">
-                        <label for="settingsHostLanguage">Host Language</label>
-                        <select id="settingsHostLanguage" required>
-                            <option value="en-GB">English (UK)</option>
-                            <option value="en-US">English (US)</option>
-                            <option value="es-ES">Spanish</option>
-                            <option value="fr-FR">French</option>
-                            <option value="de-DE">German</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Translation Languages (Max 5)</label>
-                        <div class="language-checkboxes" id="settingsLanguageCheckboxes">
-                            <!-- Will be populated dynamically -->
-                        </div>
-                        <small id="settingsLanguageCounter">0 selected</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="settingsGreeting">Greeting Text</label>
-                        <input type="text" id="settingsGreeting">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="settingsMessages">Welcome Messages</label>
-                        <textarea id="settingsMessages" rows="4" placeholder="Enter each message on a new line"></textarea>
-                        <small>Enter each message on a separate line. These appear as bullet points below the greeting.</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="settingsAdditionalWelcome">Additional Welcome Message</label>
-                        <textarea id="settingsAdditionalWelcome"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="settingsWaitingMessage">Offline Message</label>
-                        <input type="text" id="settingsWaitingMessage">
-                    </div>
-
                     <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">
 
-                    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 18px;">Pricing Configuration</h3>
+                    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Pricing Configuration</h3>
 
                     <div class="form-group">
                         <label for="settingsMonthlyFee">Monthly Fixed Fee (£)</label>
@@ -859,6 +825,73 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelSettings">Cancel</button>
                 <button type="button" class="btn btn-primary" id="saveSettings">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Settings Modal -->
+    <div class="modal" id="clientSettingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Client Appearance Settings</h2>
+                <button class="modal-close" id="closeClientSettingsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="clientSettingsForm">
+                    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Language Configuration</h3>
+
+                    <div class="form-group">
+                        <label for="settingsHostLanguage">Host Language</label>
+                        <select id="settingsHostLanguage" required>
+                            <option value="en-GB">English (UK)</option>
+                            <option value="en-US">English (US)</option>
+                            <option value="es-ES">Spanish</option>
+                            <option value="fr-FR">French</option>
+                            <option value="de-DE">German</option>
+                        </select>
+                        <small>The primary language spoken during your services</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Translation Languages (Max 5)</label>
+                        <div class="language-checkboxes" id="settingsLanguageCheckboxes">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                        <small id="settingsLanguageCounter">0 selected</small>
+                    </div>
+
+                    <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+                    <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px;">Welcome Messages</h3>
+
+                    <div class="form-group">
+                        <label for="settingsGreeting">Greeting Text</label>
+                        <input type="text" id="settingsGreeting">
+                        <small>Shown at the top of the participant app</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsMessages">Welcome Messages</label>
+                        <textarea id="settingsMessages" rows="4" placeholder="Enter each message on a new line"></textarea>
+                        <small>Enter each message on a separate line. These appear as bullet points below the greeting.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsAdditionalWelcome">Additional Welcome Message</label>
+                        <textarea id="settingsAdditionalWelcome" rows="3"></textarea>
+                        <small>Additional information for participants</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="settingsWaitingMessage">Offline Message</label>
+                        <input type="text" id="settingsWaitingMessage">
+                        <small>Shown when translation service is not active</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelClientSettings">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveClientSettings">Save Changes</button>
             </div>
         </div>
     </div>
@@ -1192,8 +1225,108 @@
             counter.textContent = `${checkedCount} selected`;
         }
 
-        // Save settings
+        // Save organisation settings
         saveSettings.addEventListener('click', async function() {
+            try {
+                const settingsData = {
+                    name: document.getElementById('settingsOrganisationName').value,
+                    contact_name: document.getElementById('settingsContactName').value,
+                    contact_phone: document.getElementById('settingsContactPhone').value,
+                    monthly_fee_gbp: parseFloat(document.getElementById('settingsMonthlyFee').value) || 0.00,
+                    price_per_character_gbp: parseFloat(document.getElementById('settingsPricePerCharacter').value) || 0.00002
+                };
+
+                const accessToken = localStorage.getItem('access_token');
+                const response = await fetch('/api/organisation/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(settingsData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert('Organisation settings saved successfully!');
+                    settingsModal.classList.remove('show');
+                    // Reload page to reflect changes
+                    location.reload();
+                } else {
+                    throw new Error(result.message || 'Failed to save settings');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Failed to save settings: ' + error.message);
+            }
+        });
+
+        // ============================================================
+        // CLIENT SETTINGS MODAL FUNCTIONALITY
+        // ============================================================
+        const clientSettingsModal = document.getElementById('clientSettingsModal');
+        const clientSettingsMenuItem = document.getElementById('clientSettingsMenuItem');
+        const closeClientSettingsModal = document.getElementById('closeClientSettingsModal');
+        const cancelClientSettings = document.getElementById('cancelClientSettings');
+        const saveClientSettings = document.getElementById('saveClientSettings');
+        const clientSettingsForm = document.getElementById('clientSettingsForm');
+
+        // Open client settings modal
+        clientSettingsMenuItem.addEventListener('click', function() {
+            loadClientSettings();
+            clientSettingsModal.classList.add('show');
+            dropdownMenu.classList.remove('show');
+        });
+
+        // Close modal handlers
+        closeClientSettingsModal.addEventListener('click', function() {
+            clientSettingsModal.classList.remove('show');
+        });
+
+        cancelClientSettings.addEventListener('click', function() {
+            clientSettingsModal.classList.remove('show');
+        });
+
+        // Close modal when clicking outside
+        clientSettingsModal.addEventListener('click', function(e) {
+            if (e.target === clientSettingsModal) {
+                clientSettingsModal.classList.remove('show');
+            }
+        });
+
+        // Load client settings
+        async function loadClientSettings() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const response = await fetch('/api/organisation/profile', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const organisation = result.data;
+                    document.getElementById('settingsHostLanguage').value = organisation.host_language || 'en-GB';
+                    document.getElementById('settingsGreeting').value = organisation.greeting || '';
+
+                    // Convert message array to newline-separated text
+                    const messages = organisation.message || [];
+                    document.getElementById('settingsMessages').value = Array.isArray(messages) ? messages.join('\n') : '';
+
+                    document.getElementById('settingsAdditionalWelcome').value = organisation.additional_welcome || '';
+                    document.getElementById('settingsWaitingMessage').value = organisation.waiting_message || '';
+
+                    // Populate language checkboxes
+                    populateLanguageCheckboxes(organisation.translation_languages || []);
+                }
+            } catch (error) {
+                console.error('Error loading client settings:', error);
+                alert('Failed to load client settings. Please try again.');
+            }
+        }
+
+        // Save client settings
+        saveClientSettings.addEventListener('click', async function() {
             try {
                 const container = document.getElementById('settingsLanguageCheckboxes');
                 const checkedBoxes = container.querySelectorAll('input:checked');
@@ -1219,18 +1352,13 @@
                     ? messagesText.split('\n').map(line => line.trim()).filter(line => line.length > 0)
                     : [];
 
-                const settingsData = {
-                    name: document.getElementById('settingsOrganisationName').value,
-                    contact_name: document.getElementById('settingsContactName').value,
-                    contact_phone: document.getElementById('settingsContactPhone').value,
+                const clientSettingsData = {
                     host_language: document.getElementById('settingsHostLanguage').value,
                     translation_languages: translationLanguages,
                     greeting: document.getElementById('settingsGreeting').value,
                     message: welcomeMessages,
                     additional_welcome: document.getElementById('settingsAdditionalWelcome').value,
-                    waiting_message: document.getElementById('settingsWaitingMessage').value,
-                    monthly_fee_gbp: parseFloat(document.getElementById('settingsMonthlyFee').value) || 0.00,
-                    price_per_character_gbp: parseFloat(document.getElementById('settingsPricePerCharacter').value) || 0.00002
+                    waiting_message: document.getElementById('settingsWaitingMessage').value
                 };
 
                 const accessToken = localStorage.getItem('access_token');
@@ -1240,22 +1368,22 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${accessToken}`
                     },
-                    body: JSON.stringify(settingsData)
+                    body: JSON.stringify(clientSettingsData)
                 });
 
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    alert('Settings saved successfully!');
-                    settingsModal.classList.remove('show');
+                    alert('Client settings saved successfully!');
+                    clientSettingsModal.classList.remove('show');
                     // Reload page to reflect changes
                     location.reload();
                 } else {
-                    throw new Error(result.message || 'Failed to save settings');
+                    throw new Error(result.message || 'Failed to save client settings');
                 }
             } catch (error) {
-                console.error('Error saving settings:', error);
-                alert('Failed to save settings: ' + error.message);
+                console.error('Error saving client settings:', error);
+                alert('Failed to save client settings: ' + error.message);
             }
         });
 

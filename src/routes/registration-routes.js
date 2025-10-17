@@ -141,11 +141,27 @@ router.get('/api/check-verification', async (req, res) => {
 // =====================================================
 
 /**
- * Serve Stage 2 organization setup page
+ * Serve Stage 2 organization setup page (redirects to step 1)
  * GET /complete-setup
  */
 router.get('/complete-setup', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../views/complete-setup.html'));
+    res.redirect('/complete-setup-org');
+});
+
+/**
+ * Serve Stage 2a organization profile page
+ * GET /complete-setup-org
+ */
+router.get('/complete-setup-org', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../views/complete-setup-org.html'));
+});
+
+/**
+ * Serve Stage 2b client appearance setup page
+ * GET /complete-setup-client
+ */
+router.get('/complete-setup-client', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../views/complete-setup-client.html'));
 });
 
 /**

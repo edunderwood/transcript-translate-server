@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="/css/login.css">
+    <title>Organization Setup - Open Word</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success-message {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #28a745;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .step.active .step-number {
+            background-color: #007bff;
+        }
+
+        .step.pending .step-number {
+            background-color: #ccc;
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .step-divider {
+            width: 40px;
+            height: 2px;
+            background-color: #ccc;
+        }
+    </style>
+</head>
+
+<body style="margin: 20px;">
+    <div class="form-container" style="max-width: 600px; margin: 0 auto;">
+        <img src="/img/logo.png" alt="Logo" class="logo">
+        <h1>Open Word</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 10px;">Step 1: Organization Profile</p>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step">
+                <div class="step-number">✓</div>
+                <span class="step-label">Account</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step">
+                <div class="step-number">✓</div>
+                <span class="step-label">Verified</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step active">
+                <div class="step-number">3</div>
+                <span class="step-label">Organization</span>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step pending">
+                <div class="step-number">4</div>
+                <span class="step-label">Client Setup</span>
+            </div>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+
+        <form id="org-form" class="validated-form" novalidate>
+            <!-- Organization Details -->
+            <div class="form-section">
+                <h2>Organization Details</h2>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                    Basic information about your organization
+                </p>
+
+                <div class="form-group">
+                    <label for="organisationName">Organization Name *</label>
+                    <input type="text" id="organisationName" name="organisationName"
+                        placeholder="First Community Organization" required>
+                    <small>The official name of your organization</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="contactName">Contact Person Name *</label>
+                    <input type="text" id="contactName" name="contactName" placeholder="John Smith" required>
+                    <small>Primary contact for account management</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="contactPhone">Contact Phone</label>
+                    <input type="tel" id="contactPhone" name="contactPhone" placeholder="+1 (555) 123-4567">
+                    <small>Phone number for account-related communications</small>
+                </div>
+            </div>
+
+            <button type="submit" id="next-btn" class="btn" style="width: 100%;">
+                Next: Client Setup →
+            </button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+            Step 3 of 4 - Next: Configure how your client app will appear
+        </p>
+    </div>
+
+    <!-- Load Supabase configuration from server -->
+    <script src="/register-config.js"></script>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        const supabaseUrl = window.SUPABASE_URL;
+        const supabaseKey = window.SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseKey) {
+            console.error('Supabase configuration missing');
+            showError('Configuration error. Please contact administrator.');
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const form = document.getElementById('org-form');
+        const errorDiv = document.getElementById('error-message');
+        const successDiv = document.getElementById('success-message');
+        const nextBtn = document.getElementById('next-btn');
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showSuccess(message) {
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+        }
+
+        function hideMessages() {
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+        }
+
+        // Check authentication
+        async function checkAuth() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error || !session) {
+                console.error('Not authenticated:', error);
+                showError('Please log in to continue setup');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return null;
+            }
+
+            // Check if email is verified
+            if (!session.user.email_confirmed_at) {
+                showError('Please verify your email before continuing');
+                setTimeout(() => {
+                    window.location.href = '/verify-email';
+                }, 2000);
+                return null;
+            }
+
+            return session;
+        }
+
+        // Load existing data if available
+        function loadExistingData() {
+            const savedData = localStorage.getItem('orgSetupData');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    document.getElementById('organisationName').value = data.organisationName || '';
+                    document.getElementById('contactName').value = data.contactName || '';
+                    document.getElementById('contactPhone').value = data.contactPhone || '';
+                } catch (e) {
+                    console.error('Error loading saved data:', e);
+                }
+            }
+        }
+
+        // Initialize
+        (async () => {
+            const session = await checkAuth();
+            if (!session) return;
+
+            loadExistingData();
+        })();
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessages();
+
+            // Validate form
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            const session = await checkAuth();
+            if (!session) return;
+
+            // Save data to localStorage
+            const formData = {
+                organisationName: document.getElementById('organisationName').value.trim(),
+                contactName: document.getElementById('contactName').value.trim(),
+                contactPhone: document.getElementById('contactPhone').value.trim()
+            };
+
+            localStorage.setItem('orgSetupData', JSON.stringify(formData));
+
+            showSuccess('Organization details saved! Redirecting to client setup...');
+
+            // Redirect to client setup
+            setTimeout(() => {
+                window.location.href = '/complete-setup-client';
+            }, 1000);
+        });
+    </script>
+</body>
+
+</html>
