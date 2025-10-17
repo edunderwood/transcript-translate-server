@@ -134,18 +134,18 @@
         <div id="success-message" class="success-message"></div>
 
         <form id="org-form" class="validated-form" novalidate>
-            <!-- Organization Details -->
+            <!-- Organisation Details -->
             <div class="form-section">
-                <h2>Organization Details</h2>
+                <h2>Organisation Details</h2>
                 <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
-                    Basic information about your organization
+                    Basic information about your organisation
                 </p>
 
                 <div class="form-group">
-                    <label for="organisationName">Organization Name *</label>
+                    <label for="organisationName">Organisation Name *</label>
                     <input type="text" id="organisationName" name="organisationName"
-                        placeholder="First Community Organization" required>
-                    <small>The official name of your organization</small>
+                        placeholder="First Community Organisation" required>
+                    <small>The official name of your organisation</small>
                 </div>
 
                 <div class="form-group">
@@ -282,7 +282,7 @@
 
             localStorage.setItem('orgSetupData', JSON.stringify(formData));
 
-            showSuccess('Organization details saved! Redirecting to client setup...');
+            showSuccess('Organisation details saved! Redirecting to client setup...');
 
             // Redirect to client setup
             setTimeout(() => {

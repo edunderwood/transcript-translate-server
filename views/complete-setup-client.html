@@ -602,10 +602,10 @@
                 return null;
             }
 
-            // Check for organization data in localStorage
+            // Check for organisation data in localStorage
             const orgData = localStorage.getItem('orgSetupData');
             if (!orgData) {
-                showError('Organization details missing. Redirecting to step 1...');
+                showError('Organisation details missing. Redirecting to step 1...');
                 setTimeout(() => {
                     window.location.href = '/complete-setup-org';
                 }, 2000);
@@ -696,7 +696,7 @@
                 const apiResult = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(apiResult.message || 'Failed to create organization');
+                    throw new Error(apiResult.message || 'Failed to create organisation');
                 }
 
                 // Success! Clear localStorage and logout

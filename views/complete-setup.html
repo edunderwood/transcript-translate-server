@@ -554,14 +554,14 @@
                     return;
                 }
 
-                // Check if organization already set up
+                // Check if organisation already set up
                 const { data: organisations, error: organisationError } = await supabase
                     .from('organisations')
                     .select('*')
                     .eq('user_id', session.user.id);
 
                 if (!organisationError && organisations && organisations.length > 0) {
-                    // Organization already exists, redirect to control panel
+                    // Organisation already exists, redirect to control panel
                     window.location.href = '/control';
                     return;
                 }
@@ -683,7 +683,7 @@
                 const result = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(result.message || 'Failed to create organization');
+                    throw new Error(result.message || 'Failed to create organisation');
                 }
 
                 // Success! Logout and redirect to login page
