@@ -363,7 +363,7 @@ app.get('/organisation/info', async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Organisation not found',
-        message: `No organization found with key: ${organisationKey}`
+        message: `No organisation found with key: ${organisationKey}`
       });
     }
 
@@ -575,7 +575,7 @@ app.get('/organisation/configuration', async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Organisation not found',
-        message: `No organization found with key: ${organisationKey}`
+        message: `No organisation found with key: ${organisationKey}`
       });
     }
 

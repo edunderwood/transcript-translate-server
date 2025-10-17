@@ -1,10 +1,10 @@
 /**
  * Two-Stage Registration Routes for OpenWord Server
- * 
+ *
  * This module implements a two-stage registration process:
  * 1. User registration with email verification
- * 2. Organization setup after email is verified
- * 
+ * 2. Organisation setup after email is verified
+ *
  * Add these routes to your Express app in server.js
  */
 
@@ -137,11 +137,11 @@ router.get('/api/check-verification', async (req, res) => {
 });
 
 // =====================================================
-// STAGE 2 ROUTES - Organization Setup
+// STAGE 2 ROUTES - Organisation Setup
 // =====================================================
 
 /**
- * Serve Stage 2 organization setup page (redirects to step 1)
+ * Serve Stage 2 organisation setup page (redirects to step 1)
  * GET /complete-setup
  */
 router.get('/complete-setup', (req, res) => {
@@ -149,7 +149,7 @@ router.get('/complete-setup', (req, res) => {
 });
 
 /**
- * Serve Stage 2a organization profile page
+ * Serve Stage 2a organisation profile page
  * GET /complete-setup-org
  */
 router.get('/complete-setup-org', (req, res) => {
@@ -165,7 +165,7 @@ router.get('/complete-setup-client', (req, res) => {
 });
 
 /**
- * Create organization after email verification
+ * Create organisation after email verification
  * POST /api/register/organization
  *
  * This endpoint creates the organisation record and default service
@@ -204,23 +204,30 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         }
 
         // Check if user already has an organisation
+        console.log(`🔍 Checking for existing organisation for user: ${userId}`);
         const { data: existingOrganisations, error: checkError } = await supabaseAdmin
             .from('organisations')
             .select('id')
             .eq('user_id', userId);
 
         if (checkError) {
-            console.error('Error checking existing organisation:', checkError);
+            console.error('❌ Error checking existing organisation:', checkError);
+            console.error('   Error code:', checkError.code);
+            console.error('   Error message:', checkError.message);
+            console.error('   Error details:', checkError.details);
             return res.status(500).json({
                 success: false,
-                message: 'Error checking existing organization'
+                message: 'Error checking existing organisation',
+                error: checkError.message
             });
         }
+
+        console.log(`✅ Organisation check complete. Found ${existingOrganisations?.length || 0} existing organisations`);
 
         if (existingOrganisations && existingOrganisations.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: 'Organization already exists for this user'
+                message: 'Organisation already exists for this user'
             });
         }
 
@@ -246,6 +253,11 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         };
 
         // Create organisation record
+        console.log(`🏗️  Creating organisation record...`);
+        console.log(`   Organisation name: ${organisationName}`);
+        console.log(`   Organisation key: ${organisationKey}`);
+        console.log(`   User ID: ${userId}`);
+
         const { data: organisationResult, error: organisationError } = await supabaseAdmin
             .from('organisations')
             .insert([organisationData])
@@ -253,11 +265,16 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
             .single();
 
         if (organisationError) {
-            console.error('Organisation creation error:', organisationError);
+            console.error('❌ Organisation creation error:', organisationError);
+            console.error('   Error code:', organisationError.code);
+            console.error('   Error message:', organisationError.message);
+            console.error('   Error details:', organisationError.details);
+            console.error('   Error hint:', organisationError.hint);
             return res.status(500).json({
                 success: false,
-                message: 'Failed to create organization',
-                error: organisationError.message
+                message: 'Failed to create organisation',
+                error: organisationError.message,
+                details: organisationError.details
             });
         }
 
@@ -286,7 +303,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         // Return success
         res.json({
             success: true,
-            message: 'Organization setup completed successfully',
+            message: 'Organisation setup completed successfully',
             organisation: {
                 id: organisationResult.id,
                 name: organisationResult.name,
@@ -296,20 +313,20 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         });
 
     } catch (error) {
-        console.error('Organization setup error:', error);
+        console.error('Organisation setup error:', error);
         res.status(500).json({
             success: false,
-            message: 'An error occurred during organization setup',
+            message: 'An error occurred during organisation setup',
             error: error.message
         });
     }
 });
 
 /**
- * Check if organization setup is complete
+ * Check if organisation setup is complete
  * GET /api/setup-status
  *
- * Returns whether the user has completed organization setup
+ * Returns whether the user has completed organisation setup
  */
 router.get('/api/setup-status', requireVerifiedEmail, async (req, res) => {
     try {
