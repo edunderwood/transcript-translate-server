@@ -205,7 +205,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
 
         // Check if user already has an organisation
         const { data: existingOrganisations, error: checkError } = await supabaseAdmin
-            .from('churches')
+            .from('organisations')
             .select('id')
             .eq('user_id', userId);
 
@@ -232,7 +232,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
         const organisationData = {
             user_id: userId,
             name: organisationName,
-            church_key: organisationKey,
+            organisation_key: organisationKey,
             greeting: greeting || 'Welcome!',
             message: message || [],
             additional_welcome: additionalWelcome || '',
@@ -247,7 +247,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
 
         // Create organisation record
         const { data: organisationResult, error: organisationError } = await supabaseAdmin
-            .from('churches')
+            .from('organisations')
             .insert([organisationData])
             .select()
             .single();
@@ -265,7 +265,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
 
         // Create default service
         const serviceData = {
-            church_id: organisationResult.id,
+            organisation_id: organisationResult.id,
             service_id: defaultServiceId,
             name: 'Main Service',
             status: 'inactive',
@@ -290,7 +290,7 @@ router.post('/api/register/organization', requireVerifiedEmail, async (req, res)
             organisation: {
                 id: organisationResult.id,
                 name: organisationResult.name,
-                organisation_key: organisationResult.church_key,
+                organisation_key: organisationResult.organisation_key,
                 default_service_id: defaultServiceId
             }
         });
@@ -317,8 +317,8 @@ router.get('/api/setup-status', requireVerifiedEmail, async (req, res) => {
 
         // Check if organisation exists for this user
         const { data: organisations, error } = await supabaseAdmin
-            .from('churches')
-            .select('id, name, church_key')
+            .from('organisations')
+            .select('id, name, organisation_key')
             .eq('user_id', userId);
 
         if (error) {
