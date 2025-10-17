@@ -137,26 +137,26 @@ export async function authorizeService(req, res, next) {
 /**
  * Middleware to check if user owns an organisation
  * Must be used after authenticateUser
- * 
+ *
  * Usage:
- *   app.put('/api/organisation/:organisationId', 
- *     authenticateUser, 
- *     authorizeChurch, 
+ *   app.put('/api/organisation/:organisationId',
+ *     authenticateUser,
+ *     authorizeOrganisation,
  *     (req, res) => {
  *       // User owns this organisation
  *     }
  *   );
  */
-export async function authorizeChurch(req, res, next) {
+export async function authorizeOrganisation(req, res, next) {
   try {
     const { organisationId } = req.params;
     const userId = req.userId;
 
     if (!organisationId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
         error: 'Bad Request',
-        message: 'Church ID is required' 
+        message: 'Organisation ID is required'
       });
     }
 
@@ -240,3 +240,6 @@ export function requireRole(allowedRoles) {
     }
   };
 }
+
+// Backwards compatibility alias
+export const authorizeChurch = authorizeOrganisation;

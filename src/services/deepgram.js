@@ -21,7 +21,7 @@ export const authService = async ({ serviceId, organisationKey }) => {
             }
         }
 
-        // Look up church in database
+        // Look up organisation in database
         const organisation = await getOrganisationByKey(organisationKey);
 
         if (!organisation) {
