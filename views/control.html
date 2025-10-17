@@ -524,62 +524,6 @@
             transform: scale(0.98);
         }
         
-        /* Save Transcript Button */
-        .save-transcript-btn {
-            padding: 8px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.3s ease;
-            display: inline-block;
-            width: auto;
-        }
-        
-        .save-transcript-btn:hover {
-            background-color: #0056b3;
-        }
-        
-        body.dark-mode .save-transcript-btn {
-            background-color: #007bff !important;
-            color: white !important;
-        }
-        
-        body.dark-mode .save-transcript-btn:hover {
-            background-color: #0056b3 !important;
-        }
-        
-        /* Clear Transcript Button */
-        .clear-transcript-btn {
-            padding: 8px 15px;
-            background-color: #ffc107;
-            color: #212529;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.3s ease;
-            display: inline-block;
-            width: auto;
-        }
-        
-        .clear-transcript-btn:hover {
-            background-color: #e0a800;
-        }
-        
-        body.dark-mode .clear-transcript-btn {
-            background-color: #ffc107 !important;
-            color: #212529 !important;
-        }
-        
-        body.dark-mode .clear-transcript-btn:hover {
-            background-color: #e0a800 !important;
-        }
-        
         /* Dark Mode Styles */
         body.dark-mode {
             background-color: #1a1a1a;
@@ -799,6 +743,16 @@
             <span id="darkModeText">Dark Mode</span>
         </button>
         <div class="dropdown-divider"></div>
+        <button id="saveTranscriptMenuItem">
+            <span>💾</span>
+            <span>Save Transcript</span>
+        </button>
+        <div class="dropdown-divider"></div>
+        <button id="clearTranscriptMenuItem" style="display: none;">
+            <span>🗑️</span>
+            <span>Clear Transcript</span>
+        </button>
+        <div class="dropdown-divider" id="clearTranscriptDivider" style="display: none;"></div>
         <button id="downloadQRMenuItem">
             <span>📥</span>
             <span>Export QR Code</span>
@@ -912,8 +866,6 @@
                 <button type="submit" class="start-action" id="enableStreaming">Start Streaming</button>
             </form>
             <button class="stop-action" id="disableStreaming" style="display: none;">Stop Streaming</button>
-            <button class="save-transcript-btn" id="saveTranscript" style="margin-top: 5px;">💾 Save Transcript</button>
-            <button class="clear-transcript-btn" id="clearTranscript" style="display: none; margin-top: 5px;">🗑️ Clear Transcript</button>
         </div>
         <div class="button-box">
             <h2>Language</h2>
@@ -1346,8 +1298,8 @@
             alert('Transcript saved successfully!');
         }
         
-        // Attach save functionality to button
-        document.getElementById('saveTranscript').addEventListener('click', saveTranscript);
+        // Attach save functionality to menu item
+        document.getElementById('saveTranscriptMenuItem').addEventListener('click', saveTranscript);
         
         // Download QR Code Functionality
         async function downloadQRCode() {
@@ -1505,32 +1457,35 @@
             }
         }
         
-        // Attach clear functionality to button
-        document.getElementById('clearTranscript').addEventListener('click', clearTranscript);
+        // Attach clear functionality to menu item
+        document.getElementById('clearTranscriptMenuItem').addEventListener('click', clearTranscript);
         
-        // Show/hide Clear button based on streaming status (Save is always visible)
+        // Show/hide Clear menu item based on streaming status (Save is always visible)
         const stopBtn = document.getElementById('disableStreaming');
         const startBtn = document.getElementById('enableStreaming');
-        const clearBtn = document.getElementById('clearTranscript');
-        
-        // Observer to show/hide Clear button when stop/start button visibility changes
+        const clearMenuItem = document.getElementById('clearTranscriptMenuItem');
+        const clearDivider = document.getElementById('clearTranscriptDivider');
+
+        // Observer to show/hide Clear menu item when stop/start button visibility changes
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.attributeName === 'style') {
                     const stopBtnVisible = stopBtn.style.display !== 'none';
                     const startBtnVisible = startBtn.style.display !== 'none';
-                    
+
                     if (stopBtnVisible) {
-                        // Streaming is active - hide clear button
-                        clearBtn.style.display = 'none';
+                        // Streaming is active - hide clear menu item
+                        clearMenuItem.style.display = 'none';
+                        clearDivider.style.display = 'none';
                     } else if (startBtnVisible) {
-                        // Streaming is stopped - show clear button
-                        clearBtn.style.display = 'block';
+                        // Streaming is stopped - show clear menu item
+                        clearMenuItem.style.display = 'block';
+                        clearDivider.style.display = 'block';
                     }
                 }
             });
         });
-        
+
         observer.observe(stopBtn, { attributes: true });
         observer.observe(startBtn, { attributes: true });
 
