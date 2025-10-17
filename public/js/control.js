@@ -584,7 +584,7 @@ const getQRCode = async (data) => {
     const format = data.format || 'svg'; // Default to svg for backward compatibility
 
     // Get organisation key from loaded organisation data
-    const organisationKey = churchData ? (churchData.organisation_key || churchData.church_key) : null;
+    const organisationKey = organisationData ? (organisationData.organisation_key || organisationData.church_key) : null;
 
     console.log(`🔍 Generating QR code - Service ID: ${serviceId}, Organisation Key: ${organisationKey}, Format: ${format}`);
 
@@ -605,8 +605,8 @@ const getQRCode = async (data) => {
     return resp.responseObject;
 }
 
-// Global church data
-let churchData = null;
+// Global organisation data
+let organisationData = null;
 
 const processConfigurationProperties = async () => {
     // Get access token from localStorage (set during login)
@@ -638,8 +638,8 @@ const processConfigurationProperties = async () => {
             return;
         }
 
-        console.log('✅ Church profile loaded:', resp.data);
-        churchData = resp.data;
+        console.log('✅ Organisation profile loaded:', resp.data);
+        organisationData = resp.data;
 
         // Extract configuration
         const data = resp.data;
@@ -659,7 +659,7 @@ const processConfigurationProperties = async () => {
             }
         }
 
-        // Update header with logo and church name
+        // Update header with logo and organisation name
         if (data.logo_base64) {
             const headerLogo = document.getElementById('headerLogo');
             if (headerLogo) {
@@ -670,16 +670,16 @@ const processConfigurationProperties = async () => {
         }
 
         if (data.name) {
-            const headerChurchName = document.getElementById('headerChurchName');
-            if (headerChurchName) {
-                headerChurchName.textContent = data.name;
-                console.log(`✅ Header church name updated: ${data.name}`);
+            const headerOrganisationName = document.getElementById('headerOrganisationName');
+            if (headerOrganisationName) {
+                headerOrganisationName.textContent = data.name;
+                console.log(`✅ Header organisation name updated: ${data.name}`);
             }
         }
 
     } catch (error) {
-        console.error('❌ Error fetching church profile:', error);
-        alert(`Error loading church profile: ${error.message}\n\nPlease login again.`);
+        console.error('❌ Error fetching organisation profile:', error);
+        alert(`Error loading organisation profile: ${error.message}\n\nPlease login again.`);
         window.location.href = '/login';
     }
 }
@@ -904,7 +904,7 @@ window.addEventListener("load", async () => {
     const dynamicMonitorList = document.getElementById('dynamic-monitor-list')
 
     // Reload from local storage if available
-    document.querySelector('#key').value = localStorage.getItem('churchKey');
+    document.querySelector('#key').value = localStorage.getItem('organisationKey');
 
 
     // Get any configuration properties we need to process from the server
