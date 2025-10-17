@@ -1,5 +1,4 @@
 import { createClient} from "@deepgram/sdk";
-import { getOrganisationSecretKey } from "../repositories/organisation.js";
 import { getDeepgramApiKey, getDeepgramProjectId } from "../repositories/deepgram.js";
 import { getOrganisationByKey } from "../../db/organisations.js";
 

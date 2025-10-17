@@ -19,11 +19,11 @@ export const infoService = () => {
             message: `Info generated successfully`,
             responseObject: {
                 name: organisationName, defaultServiceId: defaultServiceId,
-                greeting: churchGreeting,
-                message: churchMessage, additionalWelcome: churchAdditionalWelcome,
-                waiting: churchWaitingMessage,
-                language: churchLang, translationLanguages: translationLanguages,
-                base64Logo: churchLogoBase64
+                greeting: organisationGreeting,
+                message: organisationMessage, additionalWelcome: organisationAdditionalWelcome,
+                waiting: organisationWaitingMessage,
+                language: organisationLang, translationLanguages: translationLanguages,
+                base64Logo: organisationLogoBase64
             }
         }
     } catch (error) {

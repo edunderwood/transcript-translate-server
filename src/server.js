@@ -346,7 +346,7 @@ app.get('/organisation/info', async (req, res) => {
   try {
     // Support both 'organisation' and 'key' query parameters for flexibility
     // 'organisation' is preferred for multi-org, 'key' for backward compatibility
-    const organisationKey = req.query.church || req.query.key;
+    const organisationKey = req.query.organisation || req.query.church || req.query.key;
 
     if (!organisationKey) {
       return res.status(400).json({
@@ -519,7 +519,7 @@ app.get('/getChurchInfo', async (req, res) => {
 app.get('/organisation/configuration', async (req, res) => {
   try {
     // Support both 'organisation' and 'key' query parameters
-    const organisationKey = req.query.church || req.query.key;
+    const organisationKey = req.query.organisation || req.query.church || req.query.key;
 
     if (!organisationKey) {
       return res.status(400).json({
