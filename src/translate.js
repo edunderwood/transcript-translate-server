@@ -2,6 +2,8 @@ import * as dotenv from 'dotenv';
 import translate from 'google-translate-api-x';
 import { TranslationServiceClient } from '@google-cloud/translate';
 import { transcriptAvailServiceSub } from './globals.js';
+import { recordTranslationUsage } from '../db/usage.js';
+import { getServiceByServiceId } from '../db/services.js';
 
 dotenv.config();
 
@@ -100,7 +102,22 @@ export const registerForServiceTranscripts = (data) => {
             console.log(`Current languagesForChannel: `)
             printLanguageMap(serviceLanguageMap);
         }
+
+        // Get service data once for usage tracking
+        let serviceData = null;
+        try {
+            serviceData = await getServiceByServiceId(serviceCode);
+        } catch (error) {
+            console.error(`Error fetching service data for usage tracking: ${error}`);
+        }
+
         languagesForChannel.forEach(async lang => {
+            // Count characters for this translation
+            const charCount = transcript ? transcript.length : 0;
+
+            // Get client count for this language
+            const room = `${serviceCode}:${lang}`;
+            const clientCount = io.sockets.adapter.rooms.get(room)?.size || 0;
 
             if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
                 let translation = await translateText({ lang, transcript });
@@ -110,6 +127,19 @@ export const registerForServiceTranscripts = (data) => {
                 const ioChannel = `${serviceCode}:${lang}`;
                 const data = { io, channel: ioChannel, lang, transcript };
                 let translation = await translateTextAndDistribute(data);
+            }
+
+            // Record usage asynchronously (non-blocking)
+            if (serviceData && serviceData.churches && charCount > 0) {
+                recordTranslationUsage({
+                    church_id: serviceData.churches.id,
+                    service_id: serviceCode,
+                    language: lang,
+                    character_count: charCount,
+                    client_count: clientCount
+                }).catch(err => {
+                    console.error(`Error recording usage for ${serviceCode}:${lang}:`, err);
+                });
             }
         });
     });

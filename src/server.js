@@ -36,13 +36,14 @@ import {
 // Import Supabase authentication
 import { authenticateUser, authorizeService } from '../middleware/auth.js';
 import { getChurchByUserId, getChurchByKey, updateChurch } from '../db/churches.js';
-import { 
-  getServiceByServiceId, 
-  updateServiceStatus, 
+import {
+  getServiceByServiceId,
+  updateServiceStatus,
   isServiceActive,
   getServicesByUser,
   createService
 } from '../db/services.js';
+import { getCurrentMonthUsage, getRecentUsage } from '../db/usage.js';
 import { supabase, supabaseAdmin } from '../supabase.js';
 // Import route modules
 import qrcodeRouter from './routes/qrcode.js';
@@ -624,7 +625,7 @@ app.get('/api/church/profile', authenticateUser, async (req, res) => {
 app.put('/api/church/profile', authenticateUser, async (req, res) => {
   try {
     const church = await getChurchByUserId(req.userId);
-    
+
     if (!church) {
       return res.status(404).json({
         success: false,
@@ -642,6 +643,55 @@ app.put('/api/church/profile', authenticateUser, async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error updating church profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * Get translation usage statistics
+ * PROTECTED - Requires authentication
+ */
+app.get('/api/church/usage', authenticateUser, async (req, res) => {
+  try {
+    const church = await getChurchByUserId(req.userId);
+
+    if (!church) {
+      return res.status(404).json({
+        success: false,
+        error: 'Church profile not found'
+      });
+    }
+
+    const { period = 'month' } = req.query;
+
+    let usage;
+    if (period === 'week') {
+      usage = await getRecentUsage(church.id, 7);
+    } else if (period === 'month') {
+      usage = await getCurrentMonthUsage(church.id);
+    } else {
+      // Custom period in days
+      const days = parseInt(period) || 30;
+      usage = await getRecentUsage(church.id, days);
+    }
+
+    // Calculate estimated cost (Google Translate charges $20 per million characters)
+    const costPerMillion = 20;
+    const estimatedCost = (usage.totalCharacters / 1000000) * costPerMillion;
+
+    res.json({
+      success: true,
+      data: {
+        ...usage,
+        estimatedCost: estimatedCost.toFixed(2),
+        period
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error fetching usage statistics:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'

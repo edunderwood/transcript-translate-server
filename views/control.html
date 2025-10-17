@@ -945,6 +945,24 @@
             <h2>Subscribers</h2>
             <ul id="dynamic-monitor-list"></ul>
         </div>
+        <div class="button-box left-box" id="usage-box">
+            <h2>Translation Usage</h2>
+            <div id="usage-period" style="margin-bottom: 10px;">
+                <select id="usage-period-select" style="padding: 5px; border-radius: 4px;">
+                    <option value="week">Last 7 Days</option>
+                    <option value="month" selected>This Month</option>
+                    <option value="90">Last 90 Days</option>
+                </select>
+            </div>
+            <div id="usage-stats" style="font-size: 14px;">
+                <p><strong>Total Characters:</strong> <span id="usage-total">-</span></p>
+                <p><strong>Estimated Cost:</strong> $<span id="usage-cost">0.00</span></p>
+                <div id="usage-by-language" style="margin-top: 10px;">
+                    <p style="font-weight: 600; margin-bottom: 5px;">By Language:</p>
+                    <ul id="usage-language-list" style="list-style: none; padding-left: 0;"></ul>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="text-box-large" id="transcript-text-box">
@@ -1515,6 +1533,85 @@
         
         observer.observe(stopBtn, { attributes: true });
         observer.observe(startBtn, { attributes: true });
+
+        // ============================================================
+        // TRANSLATION USAGE STATISTICS
+        // ============================================================
+        async function fetchUsageStats(period = 'month') {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                if (!accessToken) {
+                    console.log('No access token available for usage stats');
+                    return;
+                }
+
+                const response = await fetch(`${serverName}/api/church/usage?period=${period}`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch usage stats');
+                }
+
+                const result = await response.json();
+                if (result.success && result.data) {
+                    displayUsageStats(result.data);
+                }
+            } catch (error) {
+                console.error('Error fetching usage stats:', error);
+                document.getElementById('usage-total').textContent = 'Error loading';
+                document.getElementById('usage-cost').textContent = '0.00';
+            }
+        }
+
+        function displayUsageStats(data) {
+            // Display total characters with formatting
+            const totalFormatted = data.totalCharacters.toLocaleString();
+            document.getElementById('usage-total').textContent = totalFormatted;
+
+            // Display estimated cost
+            document.getElementById('usage-cost').textContent = data.estimatedCost;
+
+            // Display by language
+            const languageList = document.getElementById('usage-language-list');
+            languageList.innerHTML = '';
+
+            if (data.byLanguage && Object.keys(data.byLanguage).length > 0) {
+                // Sort languages by character count (descending)
+                const sortedLanguages = Object.entries(data.byLanguage)
+                    .sort((a, b) => b[1] - a[1]);
+
+                sortedLanguages.forEach(([lang, count]) => {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = '3px';
+                    li.innerHTML = `<span style="display: inline-block; width: 60px;">${lang}:</span> ${count.toLocaleString()}`;
+                    languageList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = 'No usage data yet';
+                li.style.color = '#666';
+                languageList.appendChild(li);
+            }
+        }
+
+        // Period selector change handler
+        document.getElementById('usage-period-select').addEventListener('change', function(e) {
+            fetchUsageStats(e.target.value);
+        });
+
+        // Fetch usage stats on page load (after a short delay to ensure auth is loaded)
+        setTimeout(() => {
+            fetchUsageStats('month');
+        }, 1000);
+
+        // Refresh usage stats every 60 seconds
+        setInterval(() => {
+            const period = document.getElementById('usage-period-select').value;
+            fetchUsageStats(period);
+        }, 60000);
     </script>
 </body>
 
