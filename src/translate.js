@@ -115,18 +115,6 @@ export const registerForServiceTranscripts = (data) => {
                 // Count characters for this translation
                 const charCount = transcript ? transcript.length : 0;
 
-                // Get client count for this language (with safe access)
-                let clientCount = 0;
-                try {
-                    const room = `${serviceCode}:${lang}`;
-                    clientCount = io?.sockets?.adapter?.rooms?.get(room)?.size || 0;
-                } catch (err) {
-                    console.warn(`⚠️  Could not get client count for ${serviceCode}:${lang}:`, err.message);
-                    clientCount = 0;
-                }
-
-                console.log(`🌐 Processing translation: ${serviceCode}:${lang}, chars: ${charCount}, clients: ${clientCount}`);
-
                 // Translate and distribute
                 (async () => {
                     try {
@@ -140,9 +128,21 @@ export const registerForServiceTranscripts = (data) => {
                             await translateTextAndDistribute(data);
                         }
 
+                        // Get client count for this language AFTER translation is sent
+                        let clientCount = 0;
+                        try {
+                            const room = `${serviceCode}:${lang}`;
+                            const roomData = io.sockets.adapter.rooms.get(room);
+                            clientCount = roomData ? roomData.size : 0;
+                            console.log(`👥 Client count for ${serviceCode}:${lang}: ${clientCount}`);
+                        } catch (err) {
+                            console.warn(`⚠️  Could not get client count for ${serviceCode}:${lang}:`, err.message);
+                            clientCount = 0;
+                        }
+
                         // Record usage asynchronously (non-blocking)
                         if (serviceData && serviceData.churches && charCount > 0) {
-                            console.log(`💾 Recording usage: church=${serviceData.churches.id}, service=${serviceCode}, lang=${lang}, chars=${charCount}`);
+                            console.log(`💾 Recording usage: church=${serviceData.churches.id}, service=${serviceCode}, lang=${lang}, chars=${charCount}, clients=${clientCount}`);
                             recordTranslationUsage({
                                 church_id: serviceData.churches.id,
                                 service_id: serviceCode,

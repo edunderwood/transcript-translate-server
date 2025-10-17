@@ -841,12 +841,6 @@
         </div>
     </div>
 
-    <div>
-        <div class="recording-status" id="recording-status">
-            <span id="recording-light" class="status-light recording"></span>
-            <span id="recording-text">Streaming in progress</span>
-        </div>
-    </div>
     <div class="button-container">
         <div class="button-box fixed-box-small" style="flex: 0 0 180px;">
             <h2 style="margin-top: 0;">Service ID</h2>
@@ -866,6 +860,10 @@
                 <button type="submit" class="start-action" id="enableStreaming">Start Streaming</button>
             </form>
             <button class="stop-action" id="disableStreaming" style="display: none;">Stop Streaming</button>
+            <div class="recording-status" id="recording-status" style="margin-top: 15px;">
+                <span id="recording-light" class="status-light recording"></span>
+                <span id="recording-text">Streaming in progress</span>
+            </div>
         </div>
         <div class="button-box">
             <h2>Language</h2>
@@ -1488,6 +1486,23 @@
 
         observer.observe(stopBtn, { attributes: true });
         observer.observe(startBtn, { attributes: true });
+
+        // Set initial visibility based on current button states
+        const initialCheck = () => {
+            const stopBtnVisible = stopBtn.style.display !== 'none';
+            const startBtnVisible = startBtn.style.display !== 'none';
+
+            if (stopBtnVisible) {
+                clearMenuItem.style.display = 'none';
+                clearDivider.style.display = 'none';
+            } else if (startBtnVisible) {
+                clearMenuItem.style.display = 'block';
+                clearDivider.style.display = 'block';
+            }
+        };
+
+        // Run initial check after a short delay
+        setTimeout(initialCheck, 100);
 
         // ============================================================
         // TRANSLATION USAGE STATISTICS
