@@ -115,9 +115,15 @@ export const registerForServiceTranscripts = (data) => {
                 // Count characters for this translation
                 const charCount = transcript ? transcript.length : 0;
 
-                // Get client count for this language
-                const room = `${serviceCode}:${lang}`;
-                const clientCount = io.sockets.adapter.rooms.get(room)?.size || 0;
+                // Get client count for this language (with safe access)
+                let clientCount = 0;
+                try {
+                    const room = `${serviceCode}:${lang}`;
+                    clientCount = io?.sockets?.adapter?.rooms?.get(room)?.size || 0;
+                } catch (err) {
+                    console.warn(`⚠️  Could not get client count for ${serviceCode}:${lang}:`, err.message);
+                    clientCount = 0;
+                }
 
                 console.log(`🌐 Processing translation: ${serviceCode}:${lang}, chars: ${charCount}, clients: ${clientCount}`);
 
