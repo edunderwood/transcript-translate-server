@@ -395,15 +395,54 @@ app.get('/organisation/info', async (req, res) => {
 /**
  * Get service status (public for client polling)
  * PUBLIC - No authentication required
+ * Checks if a specific organisation's control panel is running for this service
  */
 app.get('/organisation/:serviceId/status', async (req, res) => {
   try {
     const { serviceId } = req.params;
-    
+    const { organisation, organisationKey } = req.query;
+
+    const orgKey = organisation || organisationKey;
+
+    // If organisation key is provided, verify this service belongs to that organisation
+    if (orgKey) {
+      console.log(`🔍 Checking service status for ${serviceId} in organisation ${orgKey}`);
+
+      // Get organisation from database
+      const organisationData = await getOrganisationByKey(orgKey);
+
+      if (!organisationData) {
+        console.warn(`⚠️  Organisation ${orgKey} not found`);
+        return res.json({
+          success: true,
+          responseObject: {
+            active: false,
+            reason: 'Organisation not found'
+          }
+        });
+      }
+
+      // Check if this service belongs to this organisation
+      if (organisationData.default_service_id !== serviceId) {
+        console.warn(`⚠️  Service ${serviceId} does not belong to organisation ${orgKey}`);
+        return res.json({
+          success: true,
+          responseObject: {
+            active: false,
+            reason: 'Service does not belong to this organisation'
+          }
+        });
+      }
+
+      console.log(`✅ Service ${serviceId} verified for organisation ${orgKey}`);
+    }
+
     // Check in-memory first (for active streaming), then database
     const isActiveInMemory = activeServiceIds.has(serviceId);
     const isActiveInDB = await isServiceActive(serviceId);
     const isActive = isActiveInMemory || isActiveInDB;
+
+    console.log(`📊 Service ${serviceId} active status: ${isActive} (memory: ${isActiveInMemory}, db: ${isActiveInDB})`);
 
     res.json({
       success: true,
