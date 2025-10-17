@@ -1468,7 +1468,7 @@
                     return;
                 }
 
-                const url = `${serverName}/api/organisation/usage?period=${period}`;
+                const url = `/api/organisation/usage?period=${period}`;
                 console.log('🔗 Fetching from:', url);
 
                 const response = await fetch(url, {

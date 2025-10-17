@@ -536,13 +536,13 @@ const setupDeepgram = () => {
 
         await getMicrophone();
 
-        const churchKey = document.querySelector('#key').value;
+        const organisationKey = document.querySelector('#key').value;
         const serviceId = sessionStorage.getItem('serviceId');
 
         // Validate the key with server/Deepgram
         const resp = await fetch('/deepgram/auth', {
             method: 'POST',
-            body: JSON.stringify({ serviceId, churchKey }),
+            body: JSON.stringify({ serviceId, organisationKey }),
             headers: { 'Content-Type': 'application/json' }
         }).then(r => r.json()).catch(error => alert(error))
 
@@ -583,14 +583,14 @@ const getQRCode = async (data) => {
     const serviceId = data.serviceId;
     const format = data.format || 'svg'; // Default to svg for backward compatibility
 
-    // Get church key from loaded church data
-    const churchKey = churchData ? churchData.church_key : null;
+    // Get organisation key from loaded organisation data
+    const organisationKey = churchData ? (churchData.organisation_key || churchData.church_key) : null;
 
-    console.log(`🔍 Generating QR code - Service ID: ${serviceId}, Church Key: ${churchKey}, Format: ${format}`);
+    console.log(`🔍 Generating QR code - Service ID: ${serviceId}, Organisation Key: ${organisationKey}, Format: ${format}`);
 
     const requestBody = { serviceId, format };
-    if (churchKey) {
-        requestBody.churchKey = churchKey;
+    if (organisationKey) {
+        requestBody.organisationKey = organisationKey;
     }
 
     const resp = await fetch('/qrcode/generate', {
@@ -649,11 +649,12 @@ const processConfigurationProperties = async () => {
 
         console.log(`Setting service ID to ${defaultServiceCode} and language to ${selectedLocale}`);
 
-        // Display church key in the UI (if there's an input field for it)
-        if (data.church_key) {
+        // Display organisation key in the UI (if there's an input field for it)
+        const orgKey = data.organisation_key || data.church_key;
+        if (orgKey) {
             const keyInput = document.getElementById('key');
             if (keyInput) {
-                keyInput.value = data.church_key;
+                keyInput.value = orgKey;
                 keyInput.readOnly = true; // Make it read-only since it comes from database
             }
         }
