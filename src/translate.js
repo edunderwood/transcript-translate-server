@@ -103,43 +103,66 @@ export const registerForServiceTranscripts = (data) => {
             printLanguageMap(serviceLanguageMap);
         }
 
-        // Get service data once for usage tracking
-        let serviceData = null;
-        try {
-            serviceData = await getServiceByServiceId(serviceCode);
-        } catch (error) {
-            console.error(`Error fetching service data for usage tracking: ${error}`);
-        }
+        // Get service data once for usage tracking (async, non-blocking)
+        getServiceByServiceId(serviceCode).then(serviceData => {
+            // Process each language
+            for (const lang of languagesForChannel) {
+                // Count characters for this translation
+                const charCount = transcript ? transcript.length : 0;
 
-        languagesForChannel.forEach(async lang => {
-            // Count characters for this translation
-            const charCount = transcript ? transcript.length : 0;
+                // Get client count for this language
+                const room = `${serviceCode}:${lang}`;
+                const clientCount = io.sockets.adapter.rooms.get(room)?.size || 0;
 
-            // Get client count for this language
-            const room = `${serviceCode}:${lang}`;
-            const clientCount = io.sockets.adapter.rooms.get(room)?.size || 0;
+                // Translate and distribute
+                (async () => {
+                    try {
+                        if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
+                            let translation = await translateText({ lang, transcript });
+                            const ioChannel = `${serviceCode}:${lang}`;
+                            distributeTranslation({ io, channel: ioChannel, translation });
+                        } else {
+                            const ioChannel = `${serviceCode}:${lang}`;
+                            const data = { io, channel: ioChannel, lang, transcript };
+                            await translateTextAndDistribute(data);
+                        }
 
-            if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
-                let translation = await translateText({ lang, transcript });
-                const ioChannel = `${serviceCode}:${lang}`;
-                distributeTranslation({ io, channel: ioChannel, translation });
-            } else {
-                const ioChannel = `${serviceCode}:${lang}`;
-                const data = { io, channel: ioChannel, lang, transcript };
-                let translation = await translateTextAndDistribute(data);
+                        // Record usage asynchronously (non-blocking)
+                        if (serviceData && serviceData.churches && charCount > 0) {
+                            recordTranslationUsage({
+                                church_id: serviceData.churches.id,
+                                service_id: serviceCode,
+                                language: lang,
+                                character_count: charCount,
+                                client_count: clientCount
+                            }).catch(err => {
+                                console.error(`Error recording usage for ${serviceCode}:${lang}:`, err);
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`Error translating to ${lang}:`, error);
+                    }
+                })();
             }
-
-            // Record usage asynchronously (non-blocking)
-            if (serviceData && serviceData.churches && charCount > 0) {
-                recordTranslationUsage({
-                    church_id: serviceData.churches.id,
-                    service_id: serviceCode,
-                    language: lang,
-                    character_count: charCount,
-                    client_count: clientCount
-                }).catch(err => {
-                    console.error(`Error recording usage for ${serviceCode}:${lang}:`, err);
-                });
+        }).catch(error => {
+            console.error(`Error fetching service data, translations will continue without usage tracking: ${error}`);
+            // Still do translations even if service lookup fails
+            for (const lang of languagesForChannel) {
+                (async () => {
+                    try {
+                        if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
+                            let translation = await translateText({ lang, transcript });
+                            const ioChannel = `${serviceCode}:${lang}`;
+                            distributeTranslation({ io, channel: ioChannel, translation });
+                        } else {
+                            const ioChannel = `${serviceCode}:${lang}`;
+                            const data = { io, channel: ioChannel, lang, transcript };
+                            await translateTextAndDistribute(data);
+                        }
+                    } catch (error) {
+                        console.error(`Error translating to ${lang}:`, error);
+                    }
+                })();
             }
         });
     });
