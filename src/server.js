@@ -35,7 +35,7 @@ import {
 
 // Import Supabase authentication
 import { authenticateUser, authorizeService } from '../middleware/auth.js';
-import { getChurchByUserId, getChurchByKey, updateChurch } from '../db/churches.js';
+import { getOrganisationByUserId, getOrganisationByKey, updateOrganisation } from '../db/organisations.js';
 import {
   getServiceByServiceId,
   updateServiceStatus,
@@ -338,53 +338,53 @@ app.get('/health', (req, res) => {
 });
 
 /**
- * Get church info by church key
+ * Get organisation info by organisation key
  * Used by client app to fetch branding/config
  * PUBLIC - No authentication required
  */
-app.get('/church/info', async (req, res) => {
+app.get('/organisation/info', async (req, res) => {
   try {
-    // Support both 'church' and 'key' query parameters for flexibility
-    // 'church' is preferred for multi-org, 'key' for backward compatibility
-    const churchKey = req.query.church || req.query.key;
+    // Support both 'organisation' and 'key' query parameters for flexibility
+    // 'organisation' is preferred for multi-org, 'key' for backward compatibility
+    const organisationKey = req.query.church || req.query.key;
 
-    if (!churchKey) {
+    if (!organisationKey) {
       return res.status(400).json({
         success: false,
-        error: 'Church key is required',
-        message: 'Please provide church key using ?church=YOUR_CHURCH_KEY or ?key=YOUR_CHURCH_KEY'
+        error: 'Organisation key is required',
+        message: 'Please provide organisation key using ?organisation=YOUR_ORGANISATION_KEY or ?key=YOUR_ORGANISATION_KEY'
       });
     }
 
-    console.log(`📍 Fetching church info for key: ${churchKey}`);
-    const church = await getChurchByKey(churchKey);
+    console.log(`📍 Fetching organisation info for key: ${organisationKey}`);
+    const organisation = await getOrganisationByKey(organisationKey);
 
-    if (!church) {
+    if (!organisation) {
       return res.status(404).json({
         success: false,
-        error: 'Church not found',
-        message: `No organization found with key: ${churchKey}`
+        error: 'Organisation not found',
+        message: `No organization found with key: ${organisationKey}`
       });
     }
 
-    // Return church data in format expected by client
+    // Return organisation data in format expected by client
     res.json({
       success: true,
       responseObject: {
-        name: church.name,
-        greeting: church.greeting,
-        message: JSON.stringify(church.message || []),
-        additionalWelcome: church.additional_welcome,
-        waiting: church.waiting_message,
-        logo: church.logo_base64,  // Changed from "logo" to "base64Logo" to match client expectation
-        base64Logo: church.logo_base64,
-        language: church.host_language,
-        translationLanguages: JSON.stringify(church.translation_languages || []),
-        defaultServiceId: church.default_service_id
+        name: organisation.name,
+        greeting: organisation.greeting,
+        message: JSON.stringify(organisation.message || []),
+        additionalWelcome: organisation.additional_welcome,
+        waiting: organisation.waiting_message,
+        logo: organisation.logo_base64,  // Changed from "logo" to "base64Logo" to match client expectation
+        base64Logo: organisation.logo_base64,
+        language: organisation.host_language,
+        translationLanguages: JSON.stringify(organisation.translation_languages || []),
+        defaultServiceId: organisation.default_service_id
       }
     });
   } catch (error) {
-    console.error('❌ Error fetching church info:', error);
+    console.error('❌ Error fetching organisation info:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -396,7 +396,7 @@ app.get('/church/info', async (req, res) => {
  * Get service status (public for client polling)
  * PUBLIC - No authentication required
  */
-app.get('/church/:serviceId/status', async (req, res) => {
+app.get('/organisation/:serviceId/status', async (req, res) => {
   try {
     const { serviceId } = req.params;
     
@@ -425,7 +425,7 @@ app.get('/church/:serviceId/status', async (req, res) => {
  * Used by client LivestreamComponent to show session status
  * PUBLIC - No authentication required
  */
-app.get('/church/:serviceId/livestreaming', async (req, res) => {
+app.get('/organisation/:serviceId/livestreaming', async (req, res) => {
   try {
     const { serviceId } = req.params;
     const status = activeServiceIds.has(serviceId) ? 'online' : 'offline';
@@ -450,7 +450,7 @@ app.get('/church/:serviceId/livestreaming', async (req, res) => {
  * Used by client to show which languages are being used
  * PUBLIC - No authentication required
  */
-app.get('/church/:serviceId/languages', async (req, res) => {
+app.get('/organisation/:serviceId/languages', async (req, res) => {
   try {
     const { serviceId } = req.params;
     
@@ -493,21 +493,21 @@ app.get('/church/:serviceId/languages', async (req, res) => {
  */
 app.get('/getChurchInfo', async (req, res) => {
   console.log('⚠️  Legacy endpoint /getChurchInfo called, redirecting...');
-  const churchKey = req.query.church || req.query.key;
+  const organisationKey = req.query.church || req.query.key;
 
-  if (!churchKey) {
+  if (!organisationKey) {
     return res.status(400).json({
       success: false,
-      error: 'Church key is required',
-      message: 'Please provide church key using ?church=YOUR_CHURCH_KEY or ?key=YOUR_CHURCH_KEY'
+      error: 'Organisation key is required',
+      message: 'Please provide organisation key using ?organisation=YOUR_ORGANISATION_KEY or ?key=YOUR_ORGANISATION_KEY'
     });
   }
 
-  res.redirect(`/church/info?church=${churchKey}`);
+  res.redirect(`/organisation/info?organisation=${organisationKey}`);
 });
 
 /**
- * Get church configuration for control panel
+ * Get organisation configuration for control panel
  * PUBLIC - Used by legacy control.html
  * 
  * This endpoint provides configuration data needed by the old control.html page:
@@ -516,47 +516,47 @@ app.get('/getChurchInfo', async (req, res) => {
  * - Service timeout duration
  * - Available translation languages
  */
-app.get('/church/configuration', async (req, res) => {
+app.get('/organisation/configuration', async (req, res) => {
   try {
-    // Support both 'church' and 'key' query parameters
-    const churchKey = req.query.church || req.query.key;
+    // Support both 'organisation' and 'key' query parameters
+    const organisationKey = req.query.church || req.query.key;
 
-    if (!churchKey) {
+    if (!organisationKey) {
       return res.status(400).json({
         success: false,
-        error: 'Church key is required',
-        message: 'Please provide church key using ?church=YOUR_CHURCH_KEY or ?key=YOUR_CHURCH_KEY'
+        error: 'Organisation key is required',
+        message: 'Please provide organisation key using ?organisation=YOUR_ORGANISATION_KEY or ?key=YOUR_ORGANISATION_KEY'
       });
     }
 
-    console.log(`📍 Fetching configuration for church key: ${churchKey}`);
-    const church = await getChurchByKey(churchKey);
+    console.log(`📍 Fetching configuration for organisation key: ${organisationKey}`);
+    const organisation = await getOrganisationByKey(organisationKey);
 
-    if (!church) {
+    if (!organisation) {
       return res.status(404).json({
         success: false,
-        error: 'Church not found',
-        message: `No organization found with key: ${churchKey}`
+        error: 'Organisation not found',
+        message: `No organization found with key: ${organisationKey}`
       });
     }
 
-    // Return church configuration from database
-    console.log(`✅ Church configuration found: ${church.name}`);
+    // Return organisation configuration from database
+    console.log(`✅ Organisation configuration found: ${organisation.name}`);
     res.json({
       success: true,
       responseObject: {
-        hostLanguage: church.host_language || 'en-GB',
-        defaultServiceId: church.default_service_id || '1234',
+        hostLanguage: organisation.host_language || 'en-GB',
+        defaultServiceId: organisation.default_service_id || '1234',
         serviceTimeout: process.env.SERVICE_TIMEOUT || '90',
-        translationLanguages: church.translation_languages || [],
-        churchKey: church.church_key,
-        name: church.name,
-        greeting: church.greeting,
-        logo: church.logo_base64
+        translationLanguages: organisation.translation_languages || [],
+        churchKey: organisation.organisation_key,
+        name: organisation.name,
+        greeting: organisation.greeting,
+        logo: organisation.logo_base64
       }
     });
   } catch (error) {
-    console.error('❌ Error fetching church configuration:', error);
+    console.error('❌ Error fetching organisation configuration:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch configuration',
@@ -578,37 +578,37 @@ function generateRandomServiceId() {
 // =====================================================
 
 /**
- * Get user's church profile
+ * Get user's organisation profile
  * PROTECTED - Requires authentication
  */
-app.get('/api/church/profile', authenticateUser, async (req, res) => {
+app.get('/api/organisation/profile', authenticateUser, async (req, res) => {
   try {
-    console.log(`🔍 Fetching church profile for user: ${req.userId} (${req.userEmail})`);
+    console.log(`🔍 Fetching organisation profile for user: ${req.userId} (${req.userEmail})`);
 
-    const church = await getChurchByUserId(req.userId);
+    const organisation = await getOrganisationByUserId(req.userId);
 
-    if (!church) {
-      console.log(`❌ No church found for user ${req.userId}`);
+    if (!organisation) {
+      console.log(`❌ No organisation found for user ${req.userId}`);
       return res.status(404).json({
         success: false,
-        error: 'Church profile not found',
-        message: 'No church associated with this user. Please contact support.'
+        error: 'Organisation profile not found',
+        message: 'No organisation associated with this user. Please contact support.'
       });
     }
 
-    console.log(`✅ Church profile found:`, {
-      id: church.id,
-      name: church.name,
-      church_key: church.church_key,
-      default_service_id: church.default_service_id
+    console.log(`✅ Organisation profile found:`, {
+      id: organisation.id,
+      name: organisation.name,
+      church_key: organisation.organisation_key,
+      default_service_id: organisation.default_service_id
     });
 
     res.json({
       success: true,
-      data: church
+      data: organisation
     });
   } catch (error) {
-    console.error('❌ Error fetching church profile:', error);
+    console.error('❌ Error fetching organisation profile:', error);
     console.error('Error details:', error.message, error.code);
     res.status(500).json({
       success: false,
@@ -619,30 +619,30 @@ app.get('/api/church/profile', authenticateUser, async (req, res) => {
 });
 
 /**
- * Update church profile
+ * Update organisation profile
  * PROTECTED - Requires authentication
  */
-app.put('/api/church/profile', authenticateUser, async (req, res) => {
+app.put('/api/organisation/profile', authenticateUser, async (req, res) => {
   try {
-    const church = await getChurchByUserId(req.userId);
+    const organisation = await getOrganisationByUserId(req.userId);
 
-    if (!church) {
+    if (!organisation) {
       return res.status(404).json({
         success: false,
-        error: 'Church profile not found'
+        error: 'Organisation profile not found'
       });
     }
 
     const updates = req.body;
-    const updatedChurch = await updateChurch(req.userId, church.id, updates);
+    const updatedOrganisation = await updateOrganisation(req.userId, organisation.id, updates);
 
     res.json({
       success: true,
-      data: updatedChurch,
-      message: 'Church profile updated successfully'
+      data: updatedOrganisation,
+      message: 'Organisation profile updated successfully'
     });
   } catch (error) {
-    console.error('❌ Error updating church profile:', error);
+    console.error('❌ Error updating organisation profile:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -654,14 +654,14 @@ app.put('/api/church/profile', authenticateUser, async (req, res) => {
  * Get translation usage statistics
  * PROTECTED - Requires authentication
  */
-app.get('/api/church/usage', authenticateUser, async (req, res) => {
+app.get('/api/organisation/usage', authenticateUser, async (req, res) => {
   try {
-    const church = await getChurchByUserId(req.userId);
+    const organisation = await getOrganisationByUserId(req.userId);
 
-    if (!church) {
+    if (!organisation) {
       return res.status(404).json({
         success: false,
-        error: 'Church profile not found'
+        error: 'Organisation profile not found'
       });
     }
 
@@ -669,13 +669,13 @@ app.get('/api/church/usage', authenticateUser, async (req, res) => {
 
     let usage;
     if (period === 'week') {
-      usage = await getRecentUsage(church.id, 7);
+      usage = await getRecentUsage(organisation.id, 7);
     } else if (period === 'month') {
-      usage = await getCurrentMonthUsage(church.id);
+      usage = await getCurrentMonthUsage(organisation.id);
     } else {
       // Custom period in days
       const days = parseInt(period) || 30;
-      usage = await getRecentUsage(church.id, days);
+      usage = await getRecentUsage(organisation.id, days);
     }
 
     // Calculate estimated cost (Google Translate charges $20 per million characters)
@@ -1379,10 +1379,10 @@ const PORT = process.env.PORT || 3001;
 async function ensureDefaultServiceExists() {
   try {
     const defaultServiceId = process.env.DEFAULT_SERVICE_ID;
-    const churchKey = process.env.CHURCH_KEY;
+    const organisationKey = process.env.ORGANISATION_KEY || process.env.CHURCH_KEY;
     
-    if (!defaultServiceId || !churchKey) {
-      console.warn('⚠️  DEFAULT_SERVICE_ID or CHURCH_KEY not set in .env');
+    if (!defaultServiceId || !organisationKey) {
+      console.warn('⚠️  DEFAULT_SERVICE_ID or ORGANISATION_KEY not set in .env');
       return;
     }
     
@@ -1392,13 +1392,13 @@ async function ensureDefaultServiceExists() {
       return;
     }
     
-    const church = await getChurchByKey(churchKey);
-    if (!church) {
-      console.error(`❌ Church not found with key: ${churchKey}`);
+    const organisation = await getOrganisationByKey(organisationKey);
+    if (!organisation) {
+      console.error(`❌ Organisation not found with key: ${organisationKey}`);
       return;
     }
     
-    await createService(church.id, {
+    await createService(organisation.id, {
       service_id: defaultServiceId,
       name: 'Default Service',
       active_languages: []
@@ -1428,9 +1428,9 @@ server.listen(PORT, () => {
   console.log('   GET  /control              → Control center');
   console.log('   POST /auth/login           → Authentication');
   console.log('   GET  /health               → Health check');
-  console.log('   GET  /church/info          → Church config (public API)');
-  console.log('   GET  /church/configuration → Control panel config');
-  console.log('   GET  /api/church/profile   → User profile (auth)');
+  console.log('   GET  /organisation/info          → Church config (public API)');
+  console.log('   GET  /organisation/configuration → Control panel config');
+  console.log('   GET  /api/organisation/profile   → User profile (auth)');
   console.log('   GET  /api/services         → User services (auth)');
   console.log('===========================================');
 });

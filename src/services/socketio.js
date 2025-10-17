@@ -18,8 +18,8 @@ export const initializeSocketIo = (server) => {
     });
     controlIo = io.of("/control");
 
-    // Multi tenant support (church-<tenant ID>)
-    clientConnections = io.of(/^\/church-\d+$/);
+    // Multi tenant support (organisation-<tenant ID>)
+    clientConnections = io.of(/^\/organisation-\d+$/);
     controlConnections = io.of(/^\/control-\d+$/);
 
     return { controlIo, io, clientConnections, controlConnections }

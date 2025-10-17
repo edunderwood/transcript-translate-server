@@ -4,12 +4,12 @@ import { getDebabelClientUrl } from '../repositories/index.js';
 // Get the URL of the app
 const clientUrl = getDebabelClientUrl(); 
 
-export const generateQR = async ({serviceId, churchKey, format = 'svg'}) => {
-    console.log(`🔍 QR Generation - Received params:`, { serviceId, churchKey, format, clientUrl });
+export const generateQR = async ({serviceId, organisationKey, format = 'svg'}) => {
+    console.log(`🔍 QR Generation - Received params:`, { serviceId, organisationKey, format, clientUrl });
 
-    // Build URL with both church and serviceId parameters
-    const url = churchKey
-        ? `${clientUrl}?church=${encodeURIComponent(churchKey)}&serviceId=${serviceId}`
+    // Build URL with both organisation and serviceId parameters
+    const url = organisationKey
+        ? `${clientUrl}?organisation=${encodeURIComponent(organisationKey)}&serviceId=${serviceId}`
         : `${clientUrl}?serviceId=${serviceId}`;
 
     console.log(`✅ Generating QR code for URL: ${url}`);

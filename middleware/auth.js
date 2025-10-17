@@ -4,7 +4,7 @@
  * 
  * Provides middleware functions for:
  * - Verifying Supabase JWT tokens
- * - Checking user ownership of resources (services, churches)
+ * - Checking user ownership of resources (services, organisations)
  * - Rate limiting (optional)
  */
 
@@ -135,24 +135,24 @@ export async function authorizeService(req, res, next) {
 }
 
 /**
- * Middleware to check if user owns a church
+ * Middleware to check if user owns an organisation
  * Must be used after authenticateUser
  * 
  * Usage:
- *   app.put('/api/church/:churchId', 
+ *   app.put('/api/organisation/:organisationId', 
  *     authenticateUser, 
  *     authorizeChurch, 
  *     (req, res) => {
- *       // User owns this church
+ *       // User owns this organisation
  *     }
  *   );
  */
 export async function authorizeChurch(req, res, next) {
   try {
-    const { churchId } = req.params;
+    const { organisationId } = req.params;
     const userId = req.userId;
 
-    if (!churchId) {
+    if (!organisationId) {
       return res.status(400).json({ 
         success: false,
         error: 'Bad Request',
@@ -160,24 +160,24 @@ export async function authorizeChurch(req, res, next) {
       });
     }
 
-    // Check if user owns this church
+    // Check if user owns this organisation
     const { data, error } = await supabaseAdmin
-      .from('churches')
+      .from('organisations')
       .select('id')
-      .eq('id', churchId)
+      .eq('id', organisationId)
       .eq('user_id', userId)
       .single();
 
     if (error || !data) {
-      console.warn(`⚠️  User ${userId} attempted to access church ${churchId} without permission`);
+      console.warn(`⚠️  User ${userId} attempted to access organisation ${organisationId} without permission`);
       return res.status(403).json({ 
         success: false,
         error: 'Forbidden',
-        message: 'You do not have access to this church' 
+        message: 'You do not have access to this organisation' 
       });
     }
 
-    console.log(`✅ User ${userId} authorized for church ${churchId}`);
+    console.log(`✅ User ${userId} authorized for organisation ${organisationId}`);
     next();
   } catch (error) {
     console.error('❌ Authorization error:', error);

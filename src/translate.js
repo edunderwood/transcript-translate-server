@@ -107,7 +107,7 @@ export const registerForServiceTranscripts = (data) => {
         getServiceByServiceId(serviceCode).then(serviceData => {
             console.log(`📊 Service data for ${serviceCode}:`, serviceData ? 'Found' : 'Not found');
             if (serviceData) {
-                console.log(`   Church ID: ${serviceData.churches?.id || 'Missing'}`);
+                console.log(`   Organisation ID: ${serviceData.organisations?.id || 'Missing'}`);
             }
 
             // Process each language
@@ -141,10 +141,10 @@ export const registerForServiceTranscripts = (data) => {
                         }
 
                         // Record usage asynchronously (non-blocking)
-                        if (serviceData && serviceData.churches && charCount > 0) {
-                            console.log(`💾 Recording usage: church=${serviceData.churches.id}, service=${serviceCode}, lang=${lang}, chars=${charCount}, clients=${clientCount}`);
+                        if (serviceData && serviceData.organisations && charCount > 0) {
+                            console.log(`💾 Recording usage: organisation=${serviceData.organisations.id}, service=${serviceCode}, lang=${lang}, chars=${charCount}, clients=${clientCount}`);
                             recordTranslationUsage({
-                                church_id: serviceData.churches.id,
+                                organisation_id: serviceData.organisations.id,
                                 service_id: serviceCode,
                                 language: lang,
                                 character_count: charCount,
@@ -159,7 +159,7 @@ export const registerForServiceTranscripts = (data) => {
                                 console.error(`❌ Error recording usage for ${serviceCode}:${lang}:`, err);
                             });
                         } else {
-                            console.log(`⏭️  Skipping usage recording: serviceData=${!!serviceData}, churches=${!!serviceData?.churches}, charCount=${charCount}`);
+                            console.log(`⏭️  Skipping usage recording: serviceData=${!!serviceData}, organisations=${!!serviceData?.organisations}, charCount=${charCount}`);
                         }
                     } catch (error) {
                         console.error(`Error translating to ${lang}:`, error);
