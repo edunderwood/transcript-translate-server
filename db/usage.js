@@ -1,7 +1,7 @@
 /**
  * Translation Usage Database Functions
  *
- * Tracks character usage for Google Translate API per church
+ * Tracks character usage for Google Translate API per organisation
  */
 
 import { supabaseAdmin } from '../supabase.js';
@@ -9,7 +9,7 @@ import { supabaseAdmin } from '../supabase.js';
 /**
  * Record translation character usage
  * @param {Object} usageData - Usage data
- * @param {string} usageData.church_id - Church UUID
+ * @param {string} usageData.organisation_id - Organisation UUID
  * @param {string} usageData.service_id - Service ID string
  * @param {string} usageData.language - Target language code
  * @param {number} usageData.character_count - Number of characters translated
@@ -18,9 +18,9 @@ import { supabaseAdmin } from '../supabase.js';
  */
 export async function recordTranslationUsage(usageData) {
   try {
-    const { church_id, service_id, language, character_count, client_count = 0 } = usageData;
+    const { organisation_id, service_id, language, character_count, client_count = 0 } = usageData;
 
-    if (!church_id || !service_id || !language || !character_count) {
+    if (!organisation_id || !service_id || !language || !character_count) {
       console.warn('Missing required usage data fields');
       return null;
     }
@@ -28,7 +28,7 @@ export async function recordTranslationUsage(usageData) {
     const { data, error } = await supabaseAdmin
       .from('translation_usage')
       .insert([{
-        church_id,
+        organisation_id,
         service_id,
         language,
         character_count,
@@ -53,19 +53,19 @@ export async function recordTranslationUsage(usageData) {
 }
 
 /**
- * Get total character usage for a church
- * @param {string} churchId - Church UUID
+ * Get total character usage for an organisation
+ * @param {string} organisationId - Organisation UUID
  * @param {Object} options - Query options
  * @param {string} options.startDate - Start date (YYYY-MM-DD)
  * @param {string} options.endDate - End date (YYYY-MM-DD)
  * @returns {Object} Usage statistics
  */
-export async function getChurchUsage(churchId, options = {}) {
+export async function getOrganisationUsage(organisationId, options = {}) {
   try {
     let query = supabaseAdmin
       .from('translation_usage')
       .select('character_count, language, date, client_count')
-      .eq('church_id', churchId);
+      .eq('organisation_id', organisationId);
 
     if (options.startDate) {
       query = query.gte('date', options.startDate);
@@ -78,7 +78,7 @@ export async function getChurchUsage(churchId, options = {}) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching church usage:', error);
+      console.error('Error fetching organisation usage:', error);
       throw error;
     }
 
@@ -110,17 +110,20 @@ export async function getChurchUsage(churchId, options = {}) {
       recordCount: data.length
     };
   } catch (error) {
-    console.error('Error in getChurchUsage:', error);
+    console.error('Error in getOrganisationUsage:', error);
     throw error;
   }
 }
 
+// Deprecated: Use getOrganisationUsage instead
+export const getChurchUsage = getOrganisationUsage;
+
 /**
  * Get usage for current month
- * @param {string} churchId - Church UUID
+ * @param {string} organisationId - Organisation UUID
  * @returns {Object} Current month usage statistics
  */
-export async function getCurrentMonthUsage(churchId) {
+export async function getCurrentMonthUsage(organisationId) {
   try {
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -128,7 +131,7 @@ export async function getCurrentMonthUsage(churchId) {
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
       .toISOString().split('T')[0];
 
-    return await getChurchUsage(churchId, { startDate, endDate });
+    return await getOrganisationUsage(organisationId, { startDate, endDate });
   } catch (error) {
     console.error('Error in getCurrentMonthUsage:', error);
     throw error;
@@ -137,17 +140,17 @@ export async function getCurrentMonthUsage(churchId) {
 
 /**
  * Get usage for a specific date range
- * @param {string} churchId - Church UUID
+ * @param {string} organisationId - Organisation UUID
  * @param {number} days - Number of days back to query
  * @returns {Object} Usage statistics
  */
-export async function getRecentUsage(churchId, days = 7) {
+export async function getRecentUsage(organisationId, days = 7) {
   try {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     const startDateStr = startDate.toISOString().split('T')[0];
 
-    return await getChurchUsage(churchId, { startDate: startDateStr });
+    return await getOrganisationUsage(organisationId, { startDate: startDateStr });
   } catch (error) {
     console.error('Error in getRecentUsage:', error);
     throw error;
@@ -156,7 +159,8 @@ export async function getRecentUsage(churchId, days = 7) {
 
 export default {
   recordTranslationUsage,
-  getChurchUsage,
+  getOrganisationUsage,
+  getChurchUsage, // Deprecated
   getCurrentMonthUsage,
   getRecentUsage
 };

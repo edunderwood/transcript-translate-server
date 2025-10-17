@@ -574,7 +574,7 @@ const setupDeepgram = () => {
         })
 
         // Store values in local storage in case of a refresh
-        localStorage.setItem('churchKey', churchKey);
+        localStorage.setItem('organisationKey', organisationKey);
 
     });
 }
