@@ -73,6 +73,9 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
+            <div style="text-align: right; margin-bottom: 15px;">
+                <a href="/forgot-password" style="color: #007bff; text-decoration: none; font-size: 14px;">Forgot password?</a>
+            </div>
             <button type="submit" class="btn" id="login-btn">Login</button>
         </form>
 
@@ -82,11 +85,15 @@
     </div>
 
     <script>
-        // Check for registration success
+        // Check for registration or password reset success
         const urlParams = new URLSearchParams(window.location.search);
+        const successDiv = document.getElementById('success-message');
+
         if (urlParams.get('registered') === 'true') {
-            const successDiv = document.getElementById('success-message');
             successDiv.textContent = 'Registration successful! Please check your email to verify your account, then log in below.';
+            successDiv.style.display = 'block';
+        } else if (urlParams.get('reset') === 'success') {
+            successDiv.textContent = 'Password reset successful! You can now log in with your new password.';
             successDiv.style.display = 'block';
         }
 

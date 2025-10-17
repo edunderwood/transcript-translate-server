@@ -219,6 +219,22 @@ app.get('/login', (req, res) => {
 });
 
 /**
+ * Forgot password page
+ * PUBLIC
+ */
+app.get('/forgot-password', (req, res) => {
+  res.sendFile(join(__dirname, '..', 'views', 'forgot-password.html'));
+});
+
+/**
+ * Reset password page (accessed via email link)
+ * PUBLIC
+ */
+app.get('/reset-password', (req, res) => {
+  res.sendFile(join(__dirname, '..', 'views', 'reset-password.html'));
+});
+
+/**
  * Control panel page
  * Requires authentication via /login first
  * Session token stored in cookie after login
