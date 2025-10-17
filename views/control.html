@@ -846,7 +846,7 @@
             <h2 style="margin-top: 0;">Service ID</h2>
             <p id="serviceId"></p>
             <div style="margin-top: 15px;">
-                <label for="key">Church Key</label>
+                <label for="key">Organisation Key</label>
                 <input type="text" id="key" name="key" maxlength="15" size="15" style="width: 100%; margin-top: 5px; font-family: monospace; font-size: 13px;" readonly />
             </div>
         </div>
@@ -992,7 +992,7 @@
         // ============================================================
         document.getElementById('logoutMenuItem').addEventListener('click', function() {
             if (confirm('Are you sure you want to logout?')) {
-                // Clear the Church Key before logout
+                // Clear the Organisation Key before logout
                 document.getElementById('key').value = '';
 
                 // Clear access token
@@ -1221,12 +1221,12 @@
             }
         });
 
-        // Clear Church Key when page is about to unload (browser close, refresh, navigate away)
+        // Clear Organisation Key when page is about to unload (browser close, refresh, navigate away)
         window.addEventListener('beforeunload', function() {
             document.getElementById('key').value = '';
         });
-        
-        // Clear Church Key when page loses visibility (tab switch, minimize)
+
+        // Clear Organisation Key when page loses visibility (tab switch, minimize)
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 // Optional: only clear if you want to clear on tab switch
