@@ -126,18 +126,24 @@ Prerequisite:  ensure that you have a GitHub account in order to access the DeBa
 Current hackathon 2023 version is deployed to render at https://debabel-server.onrender.com.  
 
 
-## Configuring the Server for a Specific Church
-The way that the mobile app will appear is driven by data controlled on the server side.  
-For that reason, you will need to setup some items in the .env file running in Render for your church.
-- **DEFAULT_SERVICE_ID**: this can be any number, but it is used in the QR code that is generated to distinguish a particular service.  
-   The same number can be used all the time as long as there are not two simulataneous services going on using the software.
-- **CHURCH_KEY**: This can be any word, phrase, etc., but it is used by operators to be able to start the streaming service.  
-   I typically choose church name or abbreviation (e.g. NEFC for North Evington Free Church).
-- **CHURCH_GREETING**: Message that appears at top of app
-- **CHURCH_MESSAGE**: Array of messages that appear in front page of app.  Each message string will appear on it's own paragraph.  
-- **CHURCH_ADDITIONAL_WELCOME**: Specially themed message at the bottom of the greeting
-- **CHURCH_LOGO_BASE64**: A Base64 string representing the church logo.  See next section for instructions on creating this string.
-- **CHURCH_WAITING_MESSAGE**: Message that appears at the bottom of the app telling the user that the Translation Service isn't ready yet.
+## Configuring the Server for a Specific Organisation
+The way that the mobile app will appear is driven by data controlled on the server side.
+For that reason, you will need to setup some items in the .env file running in Render for your organisation.
+- **DEFAULT_SERVICE_ID**: this can be any number, but it is used in the QR code that is generated to distinguish a particular service.
+   The same number can be used all the time as long as there are not two simultaneous services going on using the software.
+- **ORGANISATION_KEY**: This can be any word, phrase, etc., but it is used by operators to be able to start the streaming service.
+   I typically choose organisation name or abbreviation (e.g. NEFC for North Evington Free Church).
+   - **Note**: The legacy variable name `CHURCH_KEY` is also supported for backward compatibility.
+- **ORGANISATION_GREETING**: Message that appears at top of app
+   - **Note**: The legacy variable name `CHURCH_GREETING` is also supported for backward compatibility.
+- **ORGANISATION_MESSAGE**: Array of messages that appear in front page of app.  Each message string will appear on it's own paragraph.
+   - **Note**: The legacy variable name `CHURCH_MESSAGE` is also supported for backward compatibility.
+- **ORGANISATION_ADDITIONAL_WELCOME**: Specially themed message at the bottom of the greeting
+   - **Note**: The legacy variable name `CHURCH_ADDITIONAL_WELCOME` is also supported for backward compatibility.
+- **ORGANISATION_LOGO_BASE64**: A Base64 string representing the organisation logo.  See next section for instructions on creating this string.
+   - **Note**: The legacy variable name `CHURCH_LOGO_BASE64` is also supported for backward compatibility.
+- **ORGANISATION_WAITING_MESSAGE**: Message that appears at the bottom of the app telling the user that the Translation Service isn't ready yet.
+   - **Note**: The legacy variable name `CHURCH_WAITING_MESSAGE` is also supported for backward compatibility.
 - **TRANSLATION_LANGUAGES**: Which languages you want to appear in the mobile app
 - **DEBABEL_CLIENT_APP**: The URL of the client web app. This is used for generating the QR code automatically.
   - **Note**: The legacy variable name `DEBABEL_CLIENT_URL` is also supported for backward compatibility.
@@ -146,22 +152,23 @@ For that reason, you will need to setup some items in the .env file running in R
 - **SERVICE_TIMEOUT**: The amount of time in minutes before the transcription/translation service automatically
   turns off.  This is to avoid the possibility of running unintentionally for a long period of time and costing money.
 
-### Configuring the church logo
-The church logo can now also be configured either in the .env file, or by simply adding a key/value pair to 
+### Configuring the organisation logo
+The organisation logo can now also be configured either in the .env file, or by simply adding a key/value pair to
 Render environment variables.  Here are the steps for adding it:
-1.  Download a PNG or JPEG version of the church logo and generate a Base 64 date string
+1.  Download a PNG or JPEG version of the organisation logo and generate a Base 64 date string
     - This can be done via internet tools such as base64-image.com
-    - Once the image is converted to Base 64, copy the full string (it will start with `data:immage`) 
+    - Once the image is converted to Base 64, copy the full string (it will start with `data:image`)
 2.  Create the environment variable
     - Go to the server project in Render and click on `Environment`
-    - In the Environment Variables section, add the Key `CHURCH_LOGO_BASE64` and copy the Base 64 string into the Value field.
+    - In the Environment Variables section, add the Key `ORGANISATION_LOGO_BASE64` and copy the Base 64 string into the Value field.
     - Click `Save Changes` and wait for the server to redeploy
-3.  Alternatively, you could add `CHURCH_LOGO_BASE64=...` to the .env Secret File        
+3.  Alternatively, you could add `ORGANISATION_LOGO_BASE64=...` to the .env Secret File
+    - **Note**: The legacy variable name `CHURCH_LOGO_BASE64` is also supported for backward compatibility.
 
 ## Running the Server
 - Navigate the the URL created by Render (typically https://\<render-project-name\>.onrender.com)
-- Login with your credentials that you created during the Firebase setup 
-- Type in the Church Key (should match the value you have in the .env file for `CHURCH_KEY` and click `Start Streaming`)
+- Login with your credentials that you created during the Firebase setup
+- Type in the Organisation Key (should match the value you have in the .env file for `ORGANISATION_KEY` or legacy `CHURCH_KEY`) and click `Start Streaming`
 
 ## Local Build and Run
 - Make sure .env is in top level directory of project
