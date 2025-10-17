@@ -1075,7 +1075,7 @@
         async function loadSettings() {
             try {
                 const accessToken = localStorage.getItem('access_token');
-                const response = await fetch('/api/church/profile', {
+                const response = await fetch('/api/organisation/profile', {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
                 const result = await response.json();
@@ -1196,7 +1196,7 @@
                 };
 
                 const accessToken = localStorage.getItem('access_token');
-                const response = await fetch('/api/church/profile', {
+                const response = await fetch('/api/organisation/profile', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1468,7 +1468,7 @@
                     return;
                 }
 
-                const url = `${serverName}/api/church/usage?period=${period}`;
+                const url = `${serverName}/api/organisation/usage?period=${period}`;
                 console.log('🔗 Fetching from:', url);
 
                 const response = await fetch(url, {

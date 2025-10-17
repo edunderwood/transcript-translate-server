@@ -620,9 +620,9 @@ const processConfigurationProperties = async () => {
     }
 
     try {
-        // Fetch authenticated church profile
-        console.log('🔍 Fetching church profile with auth token');
-        const resp = await fetch('/api/church/profile', {
+        // Fetch authenticated organisation profile
+        console.log('🔍 Fetching organisation profile with auth token');
+        const resp = await fetch('/api/organisation/profile', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${accessToken}`
@@ -630,8 +630,8 @@ const processConfigurationProperties = async () => {
         }).then(r => r.json());
 
         if (!resp.success || !resp.data) {
-            console.error('❌ Failed to fetch church profile:', resp);
-            alert(`Failed to load church profile: ${resp.error || resp.message || 'Unknown error'}\n\nPlease complete organization setup or contact support.`);
+            console.error('❌ Failed to fetch organisation profile:', resp);
+            alert(`Failed to load organisation profile: ${resp.error || resp.message || 'Unknown error'}\n\nPlease complete organization setup or contact support.`);
             // Clear access token and redirect to login
             localStorage.removeItem('access_token');
             window.location.href = '/login';
