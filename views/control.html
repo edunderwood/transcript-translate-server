@@ -748,11 +748,11 @@
             <span>Save Transcript</span>
         </button>
         <div class="dropdown-divider"></div>
-        <button id="clearTranscriptMenuItem" style="display: none;">
+        <button id="clearTranscriptMenuItem">
             <span>🗑️</span>
             <span>Clear Transcript</span>
         </button>
-        <div class="dropdown-divider" id="clearTranscriptDivider" style="display: none;"></div>
+        <div class="dropdown-divider"></div>
         <button id="downloadQRMenuItem">
             <span>📥</span>
             <span>Export QR Code</span>
@@ -1457,52 +1457,6 @@
         
         // Attach clear functionality to menu item
         document.getElementById('clearTranscriptMenuItem').addEventListener('click', clearTranscript);
-        
-        // Show/hide Clear menu item based on streaming status (Save is always visible)
-        const stopBtn = document.getElementById('disableStreaming');
-        const startBtn = document.getElementById('enableStreaming');
-        const clearMenuItem = document.getElementById('clearTranscriptMenuItem');
-        const clearDivider = document.getElementById('clearTranscriptDivider');
-
-        // Observer to show/hide Clear menu item when stop/start button visibility changes
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.attributeName === 'style') {
-                    const stopBtnVisible = stopBtn.style.display !== 'none';
-                    const startBtnVisible = startBtn.style.display !== 'none';
-
-                    if (stopBtnVisible) {
-                        // Streaming is active - hide clear menu item
-                        clearMenuItem.style.display = 'none';
-                        clearDivider.style.display = 'none';
-                    } else if (startBtnVisible) {
-                        // Streaming is stopped - show clear menu item
-                        clearMenuItem.style.display = 'block';
-                        clearDivider.style.display = 'block';
-                    }
-                }
-            });
-        });
-
-        observer.observe(stopBtn, { attributes: true });
-        observer.observe(startBtn, { attributes: true });
-
-        // Set initial visibility based on current button states
-        const initialCheck = () => {
-            const stopBtnVisible = stopBtn.style.display !== 'none';
-            const startBtnVisible = startBtn.style.display !== 'none';
-
-            if (stopBtnVisible) {
-                clearMenuItem.style.display = 'none';
-                clearDivider.style.display = 'none';
-            } else if (startBtnVisible) {
-                clearMenuItem.style.display = 'block';
-                clearDivider.style.display = 'block';
-            }
-        };
-
-        // Run initial check after a short delay
-        setTimeout(initialCheck, 100);
 
         // ============================================================
         // TRANSLATION USAGE STATISTICS
