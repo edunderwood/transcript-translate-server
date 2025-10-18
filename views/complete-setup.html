@@ -207,7 +207,7 @@
     <div class="container">
         <img src="/img/logo.png" alt="Logo" class="logo">
         <h1>Open Word</h1>
-        <p style="text-align: center; color: #666; margin-bottom: 10px;">Complete Your Organization Setup</p>
+        <p style="text-align: center; color: #666; margin-bottom: 10px;">Complete Your Organisation Setup</p>
 
         <!-- Client Screen Preview -->
         <div class="preview-section">
@@ -234,21 +234,21 @@
             <div class="step-divider"></div>
             <div class="step active">
                 <div class="step-number">3</div>
-                <span class="step-label">Organization</span>
+                <span class="step-label">Organisation</span>
             </div>
         </div>
 
         <div id="error-message" class="error-message"></div>
 
         <form id="setup-form" class="validated-form" novalidate>
-            <!-- Organization Details -->
+            <!-- Organisation Details -->
             <div class="form-section">
-                <h2>Organization Details</h2>
+                <h2>Organisation Details</h2>
 
                 <div class="form-group">
-                    <label for="organisationName">Organization Name *</label>
+                    <label for="organisationName">Organisation Name *</label>
                     <input type="text" id="organisationName" name="organisationName"
-                        placeholder="First Community Organization" required>
+                        placeholder="First Community Organisation" required>
                 </div>
 
                 <div class="form-group">
@@ -450,7 +450,7 @@
 
             <!-- Logo Upload -->
             <div class="form-section">
-                <h2>Organization Logo (Optional)</h2>
+                <h2>Organisation Logo (Optional)</h2>
 
                 <div class="form-group">
                     <label for="logo">Upload Logo</label>
@@ -689,7 +689,7 @@
                 // Success! Logout and redirect to login page
                 // User needs to login again to access control panel
                 await supabase.auth.signOut();
-                alert('Organization setup completed successfully! Please login to access the control panel.');
+                alert('Organisation setup completed successfully! Please login to access the control panel.');
                 window.location.href = '/login';
 
             } catch (error) {

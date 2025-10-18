@@ -227,7 +227,7 @@
         <h1>Open Word</h1>
         <p style="text-align: center; color: #666; margin-bottom: 10px;">Step 2: Client Appearance</p>
 
-        <a href="/complete-setup-org" class="back-link">← Back to Organization Details</a>
+        <a href="/complete-setup-org" class="back-link">← Back to Organisation Details</a>
 
         <!-- Client Screen Preview -->
         <div class="preview-section">
@@ -254,7 +254,7 @@
             <div class="step-divider"></div>
             <div class="step">
                 <div class="step-number">✓</div>
-                <span class="step-label">Organization</span>
+                <span class="step-label">Organisation</span>
             </div>
             <div class="step-divider"></div>
             <div class="step active">
@@ -458,7 +458,7 @@
 
             <!-- Logo Upload -->
             <div class="form-section">
-                <h2>Organization Logo (Optional)</h2>
+                <h2>Organisation Logo (Optional)</h2>
 
                 <div class="form-group">
                     <label for="logo">Upload Logo</label>
@@ -678,7 +678,7 @@
                         'Authorization': `Bearer ${session.access_token}`
                     },
                     body: JSON.stringify({
-                        // Organization details from step 1
+                        // Organisation details from step 1
                         organisationName: orgData.organisationName,
                         contactName: orgData.contactName,
                         contactPhone: orgData.contactPhone,
@@ -702,7 +702,7 @@
                 // Success! Clear localStorage and logout
                 localStorage.removeItem('orgSetupData');
                 await supabase.auth.signOut();
-                alert('Organization setup completed successfully! Please login to access the control panel.');
+                alert('Organisation setup completed successfully! Please login to access the control panel.');
                 window.location.href = '/login';
 
             } catch (error) {
