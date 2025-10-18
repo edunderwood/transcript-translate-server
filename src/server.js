@@ -106,6 +106,15 @@ app.get('/register-config.js', (req, res) => {
   `);
 });
 
+// Supabase config endpoint for client-side JavaScript
+// PUBLIC - Returns only public keys (URL and anon key, NOT service role key)
+app.get('/config/supabase', (req, res) => {
+  res.json({
+    url: process.env.SUPABASE_URL,
+    anonKey: process.env.SUPABASE_ANON_KEY
+  });
+});
+
 // =====================================================
 // STATIC FILE SERVING
 // =====================================================
